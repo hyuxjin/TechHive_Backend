@@ -6,9 +6,11 @@ C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\exa
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Controller\SuperUserProfileController.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Repository\SuperUserRepository.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Entity\OfficeEntity.java
+C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Entity\UserEntity.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\AdminBackendApplication.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Repository\OfficeRepository.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Controller\SuperUserController.java
+C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Repository\ReportRepository.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Controller\PostController.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Entity\CommentEntity.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Repository\AdminRepository.java
@@ -19,6 +21,7 @@ C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\exa
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Controller\CommentController.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Entity\PostEntity.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\WebConfig.java
+C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Controller\ReportController.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Controller\AdminController.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Repository\SuperUserProfileRepository.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Service\SuperUserProfileService.java
@@ -26,5 +29,7 @@ C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\exa
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Service\SuperUserService.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Service\OfficeService.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Entity\AdminEntity.java
+C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Entity\ReportEntity.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Service\AdminService.java
 C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Repository\CommentRepository.java
+C:\Users\rodsi\Downloads\MyProjects\ADMIN_TECHHIVE_BACKEND\src\main\java\com\example\admin_backend\Service\ReportService.java
