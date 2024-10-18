@@ -42,11 +42,14 @@ public class CommentEntity {
     @Column(name = "is_deleted")
     private boolean isDeleted = false;
 
+    @Column(name = "visible")
+    private boolean visible;
+
     // Default constructor
     public CommentEntity() {}
 
     // Constructor without commentId
-    public CommentEntity(String content, int postId, int adminId, String fullName, String idNumber) {
+    public CommentEntity(String content, int postId, int adminId, String fullName, String idNumber, boolean visible) {
         this.content = content;
         this.postId = postId;
         this.adminId = adminId;
@@ -54,6 +57,7 @@ public class CommentEntity {
         this.fullName = fullName;
         this.idNumber = idNumber;
         this.timestamp = LocalDateTime.now();
+        this.visible = visible; // Initialize visibility
     }
 
     // Getters and setters
@@ -126,6 +130,14 @@ public class CommentEntity {
         isDeleted = deleted;
     }
 
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
     @Override
     public String toString() {
         return "CommentEntity{" +
@@ -137,6 +149,7 @@ public class CommentEntity {
                 ", fullName='" + fullName + '\'' +
                 ", idNumber='" + idNumber + '\'' +
                 ", isDeleted=" + isDeleted +
+                ", visible=" + visible +
                 '}';
     }
 }

@@ -57,12 +57,13 @@ public class PostController {
     }
 
     // Update post visibility
-    @PutMapping("/{post_id}/visibility")
-    public ResponseEntity<PostEntity> updatePostVisibility(@PathVariable("post_id") int postId, @RequestBody Map<String, Boolean> requestBody) {
-        boolean newVisibility = requestBody.get("isVisible");
-        PostEntity updatedPost = postService.updateVisibility(postId, newVisibility);
-        return ResponseEntity.ok(updatedPost);
-    }
+ @PutMapping("/{post_id}/visibility")
+public ResponseEntity<PostEntity> updatePostVisibility(@PathVariable("post_id") int postId, @RequestBody Map<String, Boolean> requestBody) {
+    boolean newVisibility = requestBody.get("visible");  // Ensure this matches the request body field
+    PostEntity updatedPost = postService.updateVisibility(postId, newVisibility);
+    return ResponseEntity.ok(updatedPost);
+}
+
 
     // Update a post
     @PutMapping("/{postId}")

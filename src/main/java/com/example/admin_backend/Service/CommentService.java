@@ -21,9 +21,10 @@ public class CommentService {
     @Autowired
     private PostRepository postRepository;
 
-    public List<CommentEntity> getCommentsByPostId(int postId) {
-        return commentRepository.findByPostIdAndIsDeletedFalse(postId);
-    }
+    public List<CommentEntity> getAllComments() {
+    return commentRepository.findAll();
+}
+
 
    public CommentEntity addComment(CommentEntity comment) {
     comment.setTimestamp(LocalDateTime.now());
@@ -61,5 +62,18 @@ public class CommentService {
     
     return false;
 }
+
+public boolean updateCommentVisibility(int commentId, boolean visible) {
+    Optional<CommentEntity> commentOpt = commentRepository.findById(commentId);
+    if (commentOpt.isPresent()) {
+        CommentEntity comment = commentOpt.get();
+        comment.setVisible(visible);  // Set the visible field
+        commentRepository.save(comment);  // Save the updated entity
+        return true;
+    }
+    return false;
+}
+
+
 
 }

@@ -40,7 +40,7 @@ public class PostService {
 
     // Fetch all posts that are not deleted and visible
     public List<PostEntity> getAllPosts() {
-        return postRepository.findByIsDeletedFalseAndIsVisibleTrue();
+        return postRepository.findByIsDeletedFalse();
     }
 
     // Fetch post by ID
@@ -188,9 +188,10 @@ public PostEntity toggleDislike(int postId, int userId, boolean isAdmin) {
 
     public PostEntity updateVisibility(int postId, boolean newVisibility) {
     PostEntity post = postRepository.findById(postId)
-            .orElseThrow(() -> new RuntimeException("Post not found"));
+            .orElseThrow(() -> new RuntimeException("Post not found"));  // Ensure the post exists
     post.setVisible(newVisibility);
-    return postRepository.save(post);
+    return postRepository.save(post);  // Save the updated post visibility
 }
+
 
 }

@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface PostRepository extends JpaRepository<PostEntity, Integer> {
 
     // Find all posts that are not deleted
-     List<PostEntity> findByIsDeletedFalseAndIsVisibleTrue();
+     List<PostEntity> findByIsDeletedFalse();
 
     // Find a specific post by ID
 Optional<PostEntity> findByPostIdAndIsDeletedFalse(int postId);
