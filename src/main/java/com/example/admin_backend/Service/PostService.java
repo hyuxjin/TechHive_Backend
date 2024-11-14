@@ -39,9 +39,16 @@ public class PostService {
     private ProfileRepository profileRepository;
 
     // Fetch all posts that are not deleted and visible
-    public List<PostEntity> getAllPosts() {
-        return postRepository.findByIsDeletedFalse();
-    }
+    // Fetch all posts that are not deleted and visible
+public List<PostEntity> getAllPosts() {
+    return postRepository.findByIsDeletedFalse();
+}
+
+public List<PostEntity> getAllVisiblePosts() {
+    return postRepository.findByIsDeletedFalseAndIsVisibleTrue();
+}
+
+
 
     // Fetch post by ID
     public Optional<PostEntity> getPostById(int postId) {

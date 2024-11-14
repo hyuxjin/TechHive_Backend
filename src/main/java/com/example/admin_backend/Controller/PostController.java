@@ -117,4 +117,12 @@ public ResponseEntity<PostEntity> dislikePost(@PathVariable int postId, @Request
             return ResponseEntity.notFound().build();
         }
     }
+
+    // Get all visible and not deleted posts
+@GetMapping("/visible")
+public ResponseEntity<List<PostEntity>> getVisiblePosts() {
+    List<PostEntity> visiblePosts = postService.getAllVisiblePosts(); // Fetches posts from the service
+    return ResponseEntity.ok(visiblePosts);
+}
+
 }
