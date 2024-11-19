@@ -6,68 +6,81 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import jakarta.annotation.PostConstruct;
 
 import com.example.admin_backend.Entity.SuperUserEntity;
 import com.example.admin_backend.Repository.SuperUserRepository;
 
 @Service
 public class SuperUserService {
+   @Autowired
+   private SuperUserRepository superUserRepository;
 
-    @Autowired
-    private SuperUserRepository superUserRepository;
+   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    // Create or insert superuser record
-    public SuperUserEntity insertSuperUser(SuperUserEntity superuser) {
-        // Save the plain password (Not recommended for production, but following your request)
-        superuser.setSuperUserPassword(superuser.getSuperUserPassword());
+   @PostConstruct
+   public void init() {
+       hashExistingPasswords();
+   }
 
-        System.out.println("Super Username: " + superuser.getSuperUsername()); // Debugging
-        return superUserRepository.save(superuser);
-    }
+   // Method to hash existing passwords
+   public void hashExistingPasswords() {
+       List<SuperUserEntity> superusers = superUserRepository.findAll();
+       
+       for(SuperUserEntity superuser : superusers) {
+           if(!isPasswordHashed(superuser.getSuperUserPassword())) {
+               superuser.setSuperUserPassword(encoder.encode(superuser.getSuperUserPassword()));
+               superUserRepository.save(superuser);
+           }
+       }
+   }
 
-    // Read all records
-    public List<SuperUserEntity> getAllSuperUsers() {
-        return superUserRepository.findAll();
-    }
+   // Helper method to check if password is already hashed 
+   private boolean isPasswordHashed(String password) {
+       return password.startsWith("$2a$");
+   }
 
-    // Update a superuser password
-    public SuperUserEntity updateSuperUser(int superuserId, String newSuperUserPassword, String currentSuperUserPassword) {
-        SuperUserEntity superuser = superUserRepository.findById(superuserId)
-                .orElseThrow(() -> new NoSuchElementException("SuperUser " + superuserId + " not found"));
+   public SuperUserEntity insertSuperUser(SuperUserEntity superuser) {
+       superuser.setSuperUserPassword(encoder.encode(superuser.getSuperUserPassword()));
+       return superUserRepository.save(superuser);
+   }
 
-        // Simple password comparison (plaintext comparison, no hashing)
-        if (!superuser.getSuperUserPassword().equals(currentSuperUserPassword)) {
-            throw new IllegalArgumentException("Current SuperUser password is incorrect.");
-        }
+   public SuperUserEntity updateSuperUser(int superuserId, String newPassword, String currentPassword) {
+       SuperUserEntity superuser = superUserRepository.findById(superuserId)
+               .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
+               
+       if (!encoder.matches(currentPassword, superuser.getSuperUserPassword())) {
+           throw new IllegalArgumentException("Current password is incorrect");
+       }
+       
+       superuser.setSuperUserPassword(encoder.encode(newPassword));
+       return superUserRepository.save(superuser);
+   }
 
-        // Set the new password (No hashing)
-        superuser.setSuperUserPassword(newSuperUserPassword);
+   public SuperUserEntity getSuperUserBySuperUserIdNumberAndSuperUserPassword(String idNumber, String password) {
+       Optional<SuperUserEntity> superuser = superUserRepository.findBySuperuseridNumber(idNumber);
+       
+       if (superuser.isPresent() && encoder.matches(password, superuser.get().getSuperUserPassword())) {
+           return superuser.get();
+       }
+       return null;
+   }
 
-        return superUserRepository.save(superuser);
-    }
+   // Other methods remain unchanged
+   public List<SuperUserEntity> getAllSuperUsers() {
+       return superUserRepository.findAll();
+   }
 
-    // Get superuser by superusername
-    public SuperUserEntity getSuperUserBySuperUsername(String superusername) {
-        return superUserRepository.findBySuperusername(superusername)
-                .orElseThrow(() -> new NoSuchElementException("SuperUser with username " + superusername + " not found"));
-    }
+   public SuperUserEntity getSuperUserBySuperUsername(String superusername) {
+       return superUserRepository.findBySuperusername(superusername)
+               .orElseThrow(() -> new NoSuchElementException("SuperUser with username " + superusername + " not found"));
+   }
 
-    // Get superuser by ID number and password
-    public SuperUserEntity getSuperUserBySuperUserIdNumberAndSuperUserPassword(String superuseridNumber, String superuserpassword) {
-        Optional<SuperUserEntity> optionalSuperuser = superUserRepository.findBySuperuseridNumber(superuseridNumber);
-
-        if (optionalSuperuser.isPresent() && optionalSuperuser.get().getSuperUserPassword().equals(superuserpassword)) {
-            return optionalSuperuser.get();
-        }
-        return null; // Return null if the user is not found or password does not match
-    }
-
-    // Update the status of a superuser (enable/disable account)
-    public SuperUserEntity updateSuperUserStatus(String superUserIdNumber, boolean newStatus) {
-        SuperUserEntity superuser = superUserRepository.findBySuperuseridNumber(superUserIdNumber)
-                .orElseThrow(() -> new NoSuchElementException("SuperUser with ID number " + superUserIdNumber + " not found"));
-
-        superuser.setStatus(newStatus); // Update the status
-        return superUserRepository.save(superuser);
-    }
+   public SuperUserEntity updateSuperUserStatus(String superUserIdNumber, boolean newStatus) {
+       SuperUserEntity superuser = superUserRepository.findBySuperuseridNumber(superUserIdNumber)
+               .orElseThrow(() -> new NoSuchElementException("SuperUser with ID number " + superUserIdNumber + " not found"));
+       superuser.setStatus(newStatus);
+       return superUserRepository.save(superuser);
+   }
 }
