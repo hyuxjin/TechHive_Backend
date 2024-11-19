@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,10 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.HttpStatus;  // <-- Add this import
-import org.springframework.http.ResponseEntity;  // Ensure this is also imported
-
-
+import org.springframework.http.HttpStatus;  // <-- Add this import 
 
 import com.example.admin_backend.Entity.CommentEntity;
 import com.example.admin_backend.Entity.PostEntity;
@@ -29,6 +28,8 @@ import com.example.admin_backend.Service.PostService;
 @RestController
 @RequestMapping("/posts")
 public class PostController {
+
+    private static final Logger logger = LoggerFactory.getLogger(PostController.class);
 
     @Autowired
     private PostService postService;
@@ -49,10 +50,10 @@ public class PostController {
     // Create a new post (either for superusers or admins)
     @PostMapping("/add")
     public ResponseEntity<PostEntity> addPost(@RequestBody PostEntity post) {
-        System.out.println("Received post: " + post);
-        System.out.println("Received image: " + (post.getImage() != null ? "image present" : "no image"));
+        logger.info("Received post: {}", post);
+        logger.info("Received image: {}", post.getImage() != null ? "image present" : "no image");
         PostEntity newPost = postService.createPost(post);
-        System.out.println("Created post: " + newPost);
+        logger.info("Created post: {}", newPost);
         return ResponseEntity.ok(newPost);
     }
 
@@ -78,13 +79,13 @@ public ResponseEntity<PostEntity> updatePostVisibility(@PathVariable("post_id") 
 
     // Delete (soft delete) a post
     @DeleteMapping("/{postId}")
-    public ResponseEntity<?> deletePost(@PathVariable int postId) {
-        try {
-            postService.softDeletePost(postId);
-            return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Void> deletePost(@PathVariable("postId") int postId) {
+       try {
+           postService.softDeletePost(postId);
+           return ResponseEntity.ok().build();
+       } catch (RuntimeException e) {
+           return ResponseEntity.notFound().build();
+       }
     }
 
 @PostMapping("/{postId}/like")  // Remove /posts
