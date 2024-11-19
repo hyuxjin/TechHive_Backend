@@ -39,10 +39,10 @@ public class SuperUserEntity {
         super();
     }
 
-    public SuperUserEntity(int superuserId, String superusername, String email, String superuserpassword, String fullName, String superuseridNumber, boolean status) {
+    public SuperUserEntity(int superuserId, String superusername, String email, String superuserpassword, String fullName, String superuseridNumber) {
         this.superuserId = superuserId;
         this.superusername = superusername;
-        this.email = email; 
+        this.email = email;
         this.superuserpassword = superuserpassword;
         this.fullName = fullName;
         this.superuseridNumber = superuseridNumber;
