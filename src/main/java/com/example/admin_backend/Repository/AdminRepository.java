@@ -13,7 +13,6 @@ public interface AdminRepository extends JpaRepository<AdminEntity, Integer> {
     AdminEntity findByAdminname(String adminname);
 
     AdminEntity findByIdNumber(String idNumber);
-<<<<<<< HEAD
 
     Optional<AdminEntity> findByEmail(String email);
 
@@ -22,7 +21,3 @@ public interface AdminRepository extends JpaRepository<AdminEntity, Integer> {
     // Add the method to support case-insensitive email search
     Optional<AdminEntity> findByEmailIgnoreCase(String email);
 }
-=======
-    AdminEntity findByEmailAndPassword(String email, String password);
-}
->>>>>>> parent of f6a8264 (Revert "Implement password hashing for Admin and SuperUser")
