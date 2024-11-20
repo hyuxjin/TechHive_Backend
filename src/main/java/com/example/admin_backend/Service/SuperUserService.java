@@ -8,9 +8,13 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.admin_backend.Entity.SuperUserEntity;
 import com.example.admin_backend.Repository.SuperUserRepository;
+
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class SuperUserService {
@@ -18,73 +22,95 @@ public class SuperUserService {
     @Autowired
     private SuperUserRepository superUserRepository;
 
-    @Autowired
-    private EmailService emailService; // For sending email notifications
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    // Create or insert a SuperUser
+    @Autowired
+    private EmailService emailService;
+
+    @PostConstruct
+    public void init() {
+        hashExistingPasswords();
+    }
+    
+    // Hash existing passwords
+    @Transactional
+    public void hashExistingPasswords() {
+        List<SuperUserEntity> superusers = superUserRepository.findAll();
+        for(SuperUserEntity superuser : superusers) {
+            if(!isPasswordHashed(superuser.getSuperUserPassword())) {
+                superuser.setSuperUserPassword(encoder.encode(superuser.getSuperUserPassword()));
+                superUserRepository.save(superuser);
+            }
+        }
+    }
+    
+    private boolean isPasswordHashed(String password) {
+        return password != null && password.startsWith("$2a$");
+    }
+
+    // Create new SuperUser with hashed password
+    @Transactional
     public SuperUserEntity insertSuperUser(SuperUserEntity superuser) {
+        superuser.setSuperUserPassword(encoder.encode(superuser.getSuperUserPassword()));
         return superUserRepository.save(superuser);
     }
 
-    // Retrieve all SuperUsers
     public List<SuperUserEntity> getAllSuperUsers() {
         return superUserRepository.findAll();
     }
 
-    // Update SuperUser password
+    // Update password with hashing
+    @Transactional
     public SuperUserEntity updateSuperUser(int superuserId, String newPassword, String currentPassword) {
         SuperUserEntity superuser = superUserRepository.findById(superuserId)
                 .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
 
-        // Validate current password
-        if (!superuser.getSuperUserPassword().equals(currentPassword)) {
+        if (!encoder.matches(currentPassword, superuser.getSuperUserPassword())) {
             throw new IllegalArgumentException("Incorrect current password.");
         }
 
-        // Update password
-        superuser.setSuperUserPassword(newPassword);
+        superuser.setSuperUserPassword(encoder.encode(newPassword));
         return superUserRepository.save(superuser);
     }
 
-    // Retrieve SuperUser by username
-    public SuperUserEntity getSuperUserBySuperUsername(String superUsername) {
-        return superUserRepository.findBySuperUsername(superUsername)
+    public SuperUserEntity getSuperUserBySuperusername(String superusername) {
+        return superUserRepository.findBySuperusername(superusername)
                 .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
     }
 
-    // Sign-in SuperUser
-    public SuperUserEntity getSuperUserBySuperUserIdNumberAndSuperUserPassword(String superUserIdNumber, String password) {
-        Optional<SuperUserEntity> optionalSuperuser = superUserRepository.findBySuperUserIdNumber(superUserIdNumber);
+    // Sign-in with password verification
+    public SuperUserEntity getSuperUserBySuperUserIdNumberAndSuperUserPassword(String superuseridNumber, String password) {
+        Optional<SuperUserEntity> optionalSuperuser = superUserRepository.findBySuperuseridNumber(superuseridNumber);
 
-        if (optionalSuperuser.isPresent() && optionalSuperuser.get().getSuperUserPassword().equals(password)) {
+        if (optionalSuperuser.isPresent() && 
+            encoder.matches(password, optionalSuperuser.get().getSuperUserPassword())) {
             return optionalSuperuser.get();
         }
 
         throw new IllegalArgumentException("Invalid credentials");
     }
 
-    // Update SuperUser status
-    public SuperUserEntity updateSuperUserStatus(String superUserIdNumber, boolean newStatus) {
-        SuperUserEntity superuser = superUserRepository.findBySuperUserIdNumber(superUserIdNumber)
+    @Transactional
+    public SuperUserEntity updateSuperUserStatus(String superuseridNumber, boolean newStatus) {
+        SuperUserEntity superuser = superUserRepository.findBySuperuseridNumber(superuseridNumber)
                 .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
 
         superuser.setStatus(newStatus);
         return superUserRepository.save(superuser);
     }
 
-    // Generate and send password reset code
+    // Password reset functionality with hashing
+    @Transactional
     public String generatePasswordResetCode(String email) {
         SuperUserEntity superuser = superUserRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("SuperUser with email not found"));
 
-        // Generate a secure random reset code
         String resetCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         superuser.setResetCode(resetCode);
         superuser.setResetCodeTimestamp(LocalDateTime.now());
-        superuser.setResetCodeVerified(false); // Reset the verification flag
+        superuser.setResetCodeVerified(false);
         superUserRepository.save(superuser);
 
-        // Send reset code via email
         String subject = "Password Reset Code";
         String message = "Your password reset code is: " + resetCode;
 
@@ -94,10 +120,10 @@ public class SuperUserService {
             throw new RuntimeException("Failed to send email: " + e.getMessage());
         }
 
-        return resetCode; // Return for testing/logging purposes
+        return resetCode;
     }
 
-    // Verify the reset code
+    @Transactional
     public void validateResetCode(String email, String resetCode) {
         SuperUserEntity superuser = superUserRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("SuperUser with email not found"));
@@ -111,26 +137,24 @@ public class SuperUserService {
             throw new IllegalArgumentException("Reset code expired. Please request a new one.");
         }
 
-        // Mark reset code as validated
         superuser.setResetCodeVerified(true);
         superUserRepository.save(superuser);
     }
 
-    // Reset password
+    // Reset password with hashing
+    @Transactional
     public void resetPassword(String email, String newPassword) {
         SuperUserEntity superuser = superUserRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("SuperUser with email not found"));
 
-        // Ensure reset code is verified
         if (superuser.getResetCodeVerified() == null || !superuser.getResetCodeVerified()) {
             throw new IllegalArgumentException("Reset code not verified.");
         }
 
-        // Reset password and clear reset code data
-        superuser.setSuperUserPassword(newPassword);
+        superuser.setSuperUserPassword(encoder.encode(newPassword));
         superuser.setResetCode(null);
         superuser.setResetCodeTimestamp(null);
-        superuser.setResetCodeVerified(false); // Clear the verified status
+        superuser.setResetCodeVerified(false);
         superUserRepository.save(superuser);
     }
 }

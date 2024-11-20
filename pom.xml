@@ -33,6 +33,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Spring Security -->
+       <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-crypto</artifactId>
+       </dependency>
+
         <!-- MySQL Database Driver -->
         <dependency>
             <groupId>com.mysql</groupId>
