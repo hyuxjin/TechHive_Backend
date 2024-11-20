@@ -9,12 +9,15 @@ import java.util.Optional;
 @Repository
 public interface SuperUserRepository extends JpaRepository<SuperUserEntity, Integer> {
 
-    // Match the entity field names exactly and return Optional
-    Optional<SuperUserEntity> findBySuperusername(String superusername);
+    // Find by username (case-sensitive)
+    Optional<SuperUserEntity> findBySuperUsername(String superUsername);
 
-    Optional<SuperUserEntity> findBySuperuseridNumber(String superuseridNumber);
+    // Find by ID number
+    Optional<SuperUserEntity> findBySuperUserIdNumber(String superUserIdNumber);
 
-    Optional<SuperUserEntity> findByEmailAndSuperuserpassword(String email, String superuserpassword);
+    // Find by email and password (case-sensitive)
+    Optional<SuperUserEntity> findByEmailAndSuperUserPassword(String email, String superUserPassword);
 
-    Optional<SuperUserEntity> findBySuperuserId(int superuserId);
+    // Find by email
+    Optional<SuperUserEntity> findByEmail(String email);
 }

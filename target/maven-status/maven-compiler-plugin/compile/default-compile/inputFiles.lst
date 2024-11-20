@@ -1,3 +1,4 @@
+/Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Controller/PasswordResetController.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/ProfileRepository.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Controller/ReportController.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/SuperUserRepository.java
@@ -11,10 +12,12 @@
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/AdminService.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Entity/ProfileEntity.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/SuperUserProfileRepository.java
+/Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/PasswordResetRepository.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/PostService.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/ReportService.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/CommentRepository.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Controller/AdminController.java
+/Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/EmailService.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Entity/OfficeEntity.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/PostRepository.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/SuperUserService.java
@@ -23,10 +26,12 @@
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/CommentService.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/SuperUserProfileService.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Entity/UserEntity.java
+/Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Controller/EmailTestController.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/ProfileService.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Controller/OfficeController.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Entity/PostEntity.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Controller/PostController.java
+/Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/PasswordResetService.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/AdminRepository.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/ReportRepository.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/WebConfig.java
