@@ -73,31 +73,31 @@ public class SuperUserService {
         return superUserRepository.save(superuser);
     }
 
-    public SuperUserEntity getSuperUserBySuperusername(String superusername) {
-        return superUserRepository.findBySuperusername(superusername)
-                .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
+// Update method name to match repository
+public SuperUserEntity getSuperUserBySuperUsername(String superUsername) {
+    return superUserRepository.findBySuperUsername(superUsername)
+            .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
+}
+
+// Update method name and parameter to match repository
+public SuperUserEntity getSuperUserBySuperUserIdNumberAndSuperUserPassword(String superUserIdNumber, String password) {
+    Optional<SuperUserEntity> optionalSuperuser = superUserRepository.findBySuperUserIdNumber(superUserIdNumber);
+
+    if (optionalSuperuser.isPresent() && 
+        encoder.matches(password, optionalSuperuser.get().getSuperUserPassword())) {
+        return optionalSuperuser.get();
     }
+    throw new IllegalArgumentException("Invalid credentials");
+}
 
-    // Sign-in with password verification
-    public SuperUserEntity getSuperUserBySuperUserIdNumberAndSuperUserPassword(String superuseridNumber, String password) {
-        Optional<SuperUserEntity> optionalSuperuser = superUserRepository.findBySuperuseridNumber(superuseridNumber);
+// Update method name to match repository
+public SuperUserEntity updateSuperUserStatus(String superUserIdNumber, boolean newStatus) {
+    SuperUserEntity superuser = superUserRepository.findBySuperUserIdNumber(superUserIdNumber)
+            .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
 
-        if (optionalSuperuser.isPresent() && 
-            encoder.matches(password, optionalSuperuser.get().getSuperUserPassword())) {
-            return optionalSuperuser.get();
-        }
-
-        throw new IllegalArgumentException("Invalid credentials");
-    }
-
-    @Transactional
-    public SuperUserEntity updateSuperUserStatus(String superuseridNumber, boolean newStatus) {
-        SuperUserEntity superuser = superUserRepository.findBySuperuseridNumber(superuseridNumber)
-                .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
-
-        superuser.setStatus(newStatus);
-        return superUserRepository.save(superuser);
-    }
+    superuser.setStatus(newStatus);
+    return superUserRepository.save(superuser);
+}
 
     // Password reset functionality with hashing
     @Transactional

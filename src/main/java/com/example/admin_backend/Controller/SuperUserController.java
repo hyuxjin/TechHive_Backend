@@ -156,13 +156,12 @@ public class SuperUserController {
 
     // Get SuperUser by Username
     @GetMapping("/getBySuperUsername")
-    public ResponseEntity<?> getSuperUserBySuperUsername(@RequestParam String superUsername) {
-        try {
-            SuperUserEntity superuser = superUserService.getSuperUserBySuperUsername(superUsername);
-            return ResponseEntity.ok(superuser);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    public ResponseEntity<SuperUserEntity> getSuperUserBySuperUsername(@RequestParam String superUsername) {
+        SuperUserEntity superUser = superUserService.getSuperUserBySuperUsername(superUsername);
+        if (superUser == null) {
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(superUser);
     }
 
     // Update SuperUser Status
