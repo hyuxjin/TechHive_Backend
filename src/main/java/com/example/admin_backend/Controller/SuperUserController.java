@@ -129,30 +129,46 @@ public class SuperUserController {
 
     // SuperUser Sign-in
     @PostMapping("/signin")
-    public ResponseEntity<?> signIn(@RequestBody Map<String, String> loginData) {
-        String superUserIdNumber = loginData.get("superUserIdNumber");
-        String superUserPassword = loginData.get("superUserPassword");
+public ResponseEntity<?> signIn(@RequestBody Map<String, String> loginData) {
+    String superUserIdNumber = loginData.get("superUserIdNumber");
+    String superUserPassword = loginData.get("superUserPassword");
 
-        try {
-            SuperUserEntity superuser = superUserService.getSuperUserBySuperUserIdNumberAndSuperUserPassword(superUserIdNumber, superUserPassword);
-            if (superuser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials.");
-            }
-            if (!superuser.getStatus()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is disabled.");
-            }
+    System.out.println("Login attempt with ID: " + superUserIdNumber); // Debug log
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", "dummyToken"); // Replace with JWT if implemented
-            response.put("superuserId", superuser.getSuperUserId());
-            response.put("superUsername", superuser.getSuperUsername());
-            response.put("fullName", superuser.getFullName());
-            response.put("email", superuser.getEmail());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during sign-in.");
-        }
+    if (superUserIdNumber == null || superUserPassword == null) {
+        return ResponseEntity.badRequest().body("ID number and password are required");
     }
+
+    try {
+        SuperUserEntity superuser = superUserService.getSuperUserBySuperUserIdNumberAndSuperUserPassword(
+                superUserIdNumber, superUserPassword);
+        
+        if (superuser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
+        
+        if (!superuser.getStatus()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is disabled");
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", "dummyToken");
+        response.put("superuserId", superuser.getSuperUserId());
+        response.put("superUsername", superuser.getSuperUsername());
+        response.put("fullName", superuser.getFullName());
+        response.put("email", superuser.getEmail());
+        
+        return ResponseEntity.ok(response);
+        
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Invalid credentials: " + e.getMessage());
+    } catch (Exception e) {
+        e.printStackTrace(); // This will print to server logs
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An error occurred during sign-in: " + e.getMessage());
+    }
+}
 
     // Get SuperUser by Username
     @GetMapping("/getBySuperUsername")
