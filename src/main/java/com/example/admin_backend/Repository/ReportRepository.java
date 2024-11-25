@@ -1,21 +1,19 @@
 package com.example.admin_backend.Repository;
 
+import com.example.admin_backend.Entity.ReportEntity;
+import com.example.admin_backend.Entity.ReportStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+public interface ReportRepository extends JpaRepository<ReportEntity, Integer> {
 
-import com.example.admin_backend.Entity.ReportEntity;
+    // Corrected method to compare with the enum type ReportStatus
+    List<ReportEntity> findByStatus(ReportStatus status);  // Compare with the enum type, not a String
 
-@Repository
-public interface ReportRepository extends JpaRepository<ReportEntity, Long> {
+    List<ReportEntity> findByUser_UserId(int userId);
 
-    // Find reports that are approved
-    List<ReportEntity> findByApproved(Boolean approved);
-
-    // Find reports that are declined
-    List<ReportEntity> findByDeclined(Boolean declined);
-
-    // Find reports that are both approved and declined (pending)
-    List<ReportEntity> findByApprovedAndDeclined(Boolean approved, Boolean declined);
+    // Count reports by status and user ID
+    int countByStatusAndUser_UserId(ReportStatus status, int userId);
+    
 }
+
