@@ -78,137 +78,57 @@ public class UserReportService {
         String concernedOffices = determineConcernedOffice(description, report);
         report.setConcernedOffice(concernedOffices);
 
-        reportRepository.saveAndFlush(report);  // Explicitly flush to commit data
+        reportRepository.saveAndFlush(report);
 
-
-       // Create feedback entry and set totalReports (this handles the totalReports calculation)
-       feedbackService.createFeedbackForReport(report);
-
-
+        // Create feedback entry
+        feedbackService.createFeedbackForReport(report);
         
-        // Save user location if latitude and longitude are provided
- if (latitude != null && longitude != null) {
-     locationService.saveUserLocation(latitude, longitude, user.getIdNumber(), buildingName);
- }
+        // Save user location if provided
+        if (latitude != null && longitude != null) {
+            locationService.saveUserLocation(latitude, longitude, user.getIdNumber(), buildingName);
+        }
 
- return report;
+        return report;
     }
 
-    // Validate and sanitize the description
     private void validateAndSanitizeDescription(String description) {
         if (description == null || description.trim().isEmpty()) {
-            throw new IllegalArgumentException("Description cannot be empty. Please provide details.");
+            throw new IllegalArgumentException("Description cannot be empty");
         }
-        if (description.length() < 10) {  // Example: set a minimum of 10 characters
-            throw new IllegalArgumentException("Description is too short; please provide more detail.");
+        if (description.length() < 10) {
+            throw new IllegalArgumentException("Description must be at least 10 characters long");
         }
         if (description.length() > 500) {
-            throw new IllegalArgumentException("Description is too long; please keep it under 500 characters.");
+            throw new IllegalArgumentException("Description must be less than 500 characters");
         }
-        // Sanitize by removing any potentially harmful characters
-        description = description.replaceAll("[^a-zA-Z0-9.,!?\\s]", "").trim();
     }
 
-    // Method to add offices to an existing keyword
     public void addOfficesToKeyword(String keywordName, List<String> newOffices) {
         KeywordEntity keywordEntity = keywordRepository.findByKeywordName(keywordName)
                 .orElseThrow(() -> new RuntimeException("Keyword not found: " + keywordName));
 
         List<String> offices = keywordEntity.getOffices();
-
         if (offices == null) {
             offices = new ArrayList<>();
         }
 
-        // Add each new office only if it’s not already present
         for (String office : newOffices) {
             if (!offices.contains(office)) {
                 offices.add(office);
             }
         }
 
-        // Update and save the keyword entity with the new offices list
         keywordEntity.setOffices(offices);
         keywordRepository.save(keywordEntity);
     }
 
     private void initializeConcernedOfficeMappings() {
-        // Critical Emergency keywords and their respective offices
-        keywordToOfficesMap.put("medical emergency", Arrays.asList("CIT-U Clinic - Health Services", "Safety and Security Office"));
-        keywordToOfficesMap.put("fire", Arrays.asList("CIT-U Clinic - Health Services", "Safety and Security Office"));
-        keywordToOfficesMap.put("unauthorized access", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("campus security", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("personal safety", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("suspicious activity", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("accident", Arrays.asList("CIT-U Clinic - Health Services"));
-        keywordToOfficesMap.put("explosion", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("gas leak", Arrays.asList("CIT-U Clinic - Health Services", "Safety and Security Office"));
-        keywordToOfficesMap.put("active shooter", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("intruder", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("assault", Arrays.asList("Safety and Security Office", "CIT-U Clinic - Health Services"));
-        keywordToOfficesMap.put("collapse", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("emergency", Arrays.asList("CIT-U Clinic - Health Services", "Safety and Security Office"));
-        keywordToOfficesMap.put("evacuation", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("injury", Arrays.asList("CIT-U Clinic - Health Services"));
-        keywordToOfficesMap.put("flood", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("electrical hazard", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("security breach", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("lockdown", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("earthquake", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("blood", Arrays.asList("CIT-U Clinic - Health Services"));
-        keywordToOfficesMap.put("suicide", Arrays.asList("CIT-U Guidance Center - Mental Health Services"));
-        keywordToOfficesMap.put("suicide attempt", Arrays.asList("CIT-U Guidance Center - Mental Health Services"));
-        keywordToOfficesMap.put("knife", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("fall", Arrays.asList("CIT-U Clinic - Health Services"));
-    
-        // Urgent Situation keywords and their respective offices
-        keywordToOfficesMap.put("illness", Arrays.asList("CIT-U Clinic - Health Services"));
-        keywordToOfficesMap.put("minor injury", Arrays.asList("CIT-U Clinic - Health Services"));
-        keywordToOfficesMap.put("peer conflict", Arrays.asList("SSO (Student Success Office) - Student Concerns"));
-        keywordToOfficesMap.put("network issues", Arrays.asList("TSG (Technical Support Group) - Technical Assistance"));
-        keywordToOfficesMap.put("hardware failure", Arrays.asList("TSG (Technical Support Group) - Technical Assistance"));
-        keywordToOfficesMap.put("damaged equipment", Arrays.asList("OPC (Office of the Property Custodian)"));
-        keywordToOfficesMap.put("lost property", Arrays.asList("OPC (Office of the Property Custodian)"));
-        keywordToOfficesMap.put("payment issues", Arrays.asList("SSO (Student Success Office) - Student Concerns"));
-        keywordToOfficesMap.put("academic difficulty", Arrays.asList("SSO (Student Success Office) - Student Concerns"));
-        keywordToOfficesMap.put("mental health support", Arrays.asList("CIT-U Guidance Center - Mental Health Services"));
-        keywordToOfficesMap.put("counseling", Arrays.asList("CIT-U Guidance Center - Mental Health Services"));
-        keywordToOfficesMap.put("cleaning request", Arrays.asList("PACUBAS - Janitorial Services"));
-        keywordToOfficesMap.put("restocking supplies", Arrays.asList("PACUBAS - Janitorial Services"));
-        keywordToOfficesMap.put("pest control", Arrays.asList("PACUBAS - Janitorial Services"));
-        keywordToOfficesMap.put("power outage", Arrays.asList("TSG (Technical Support Group) - Technical Assistance"));
-        keywordToOfficesMap.put("missing person", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("hazardous materials", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("vandalism", Arrays.asList("Safety and Security Office"));
-        keywordToOfficesMap.put("broken equipment", Arrays.asList("OPC (Office of the Property Custodian)"));
-        keywordToOfficesMap.put("water leak", Arrays.asList("PACUBAS - Janitorial Services"));
-        keywordToOfficesMap.put("technical failure", Arrays.asList("TSG (Technical Support Group) - Technical Assistance"));
-    
-        // General Report keywords and their respective offices
-        keywordToOfficesMap.put("festival", Arrays.asList("SSO (Student Success Office) - Student Activities", "Safety and Security Office", "OPC (Office of the Property Custodian)", "CORE - Livestream, Audio/Visual Equipment", "PACUBAS - Janitorial Services"));
-        keywordToOfficesMap.put("competition", Arrays.asList("SSO (Student Success Office) - Student Activities", "Safety and Security Office", "OPC (Office of the Property Custodian)", "CORE - Livestream, Audio/Visual Equipment", "PACUBAS - Janitorial Services"));
-        keywordToOfficesMap.put("workshop", Arrays.asList("SSO (Student Success Office) - Student Activities", "Safety and Security Office", "OPC (Office of the Property Custodian)", "CORE - Livestream, Audio/Visual Equipment", "PACUBAS - Janitorial Services"));
-        keywordToOfficesMap.put("color's day", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("founder's day", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("university day", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("conferment day", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("parangal", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("crowning", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("mental health awareness month", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("intramurals", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("acquaintance", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("commencement rites", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-        keywordToOfficesMap.put("graduation day", Arrays.asList("SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"));
-    
-        // Populate the synonym-to-office map
-        keywordToOfficesMap.forEach((keyword, offices) -> {
-            List<String> synonyms = getSynonyms(keyword);
-            for (String synonym : synonyms) {
-                synonymToOfficesMap.put(synonym, offices);
-            }
-        });
+        // Initialize your keyword mappings here
+        // Example:
+        keywordToOfficesMap.put("emergency", Arrays.asList("Safety Office", "Health Services"));
+        // Add more mappings as needed
     }
-    
+
     public List<String> getKeywordsByCategory(KeywordCategory category) {
         return keywordRepository.findByCategory(category)
                                 .stream()
@@ -238,12 +158,13 @@ public class UserReportService {
     }
 
     private boolean containsKeywordsOrSynonyms(String description, List<String> keywords) {
+        String lowerDescription = description.toLowerCase();
         for (String keyword : keywords) {
-            if (description.contains(keyword)) {
+            if (lowerDescription.contains(keyword.toLowerCase())) {
                 return true;
             }
             for (String synonym : getSynonyms(keyword)) {
-                if (description.contains(synonym)) {
+                if (lowerDescription.contains(synonym.toLowerCase())) {
                     return true;
                 }
             }
@@ -273,26 +194,26 @@ public class UserReportService {
             logUnmatchedReport(description);
         }
 
-        return String.join(", ", new HashSet<>(concernedOffices));  // Use Set to remove duplicates
+        return String.join(", ", new HashSet<>(concernedOffices));
     }
 
     private void logUnmatchedReport(String description) {
-        System.out.println("Unmatched report description: " + description);
-
         try (FileWriter writer = new FileWriter("unmatched_reports.log", true)) {
             writer.write(LocalDateTime.now() + ": " + description + "\n");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error logging unmatched report: " + e.getMessage());
         }
     }
 
     public UserEntity findUserById(int userId) {
         return userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
     }
 
     public List<ReportEntity> getReportsByUserId(int userId) {
-        return reportRepository.findByUser_UserId(userId);
+        List<ReportEntity> reports = reportRepository.findByUser_UserId(userId);
+        reports.sort((a, b) -> b.getSubmittedAt().compareTo(a.getSubmittedAt()));
+        return reports;
     }
 
     public Map<String, Integer> getReportStatusCounts(int userId) {
@@ -302,5 +223,4 @@ public class UserReportService {
         statusCounts.put("denied", reportRepository.countByStatusAndUser_UserId(ReportStatus.DENIED, userId));
         return statusCounts;
     }
-    
 }

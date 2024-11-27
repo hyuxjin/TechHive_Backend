@@ -26,7 +26,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/reports")
-@CrossOrigin(origins = "http://localhost:3000") // Add this for frontend integration
+@CrossOrigin(origins = "http://localhost:3000")
 public class UserReportController {
 
     private final UserReportService userReportService;
@@ -43,13 +43,42 @@ public class UserReportController {
         this.reportRepository = reportRepository;
     }
 
-    // Get all reports
     @GetMapping
     public ResponseEntity<?> getAllReports() {
         try {
-            List<ReportEntity> reports = reportRepository.findAll();
-            return ResponseEntity.ok(reports);
+            List<ReportEntity> reports = reportRepository.findAllOrderBySubmittedAtDesc();
+            
+            System.out.println("\n=== Fetching All Reports ===");
+            System.out.println("Total reports found: " + reports.size());
+            
+            if (reports.isEmpty()) {
+                System.out.println("No reports found in database");
+                return ResponseEntity.ok()
+                    .header("X-Total-Count", "0")
+                    .body(new ArrayList<>());
+            }
+            
+            reports.forEach(report -> {
+                System.out.println("\nReport Details:");
+                System.out.println("ID: " + report.getReportId());
+                System.out.println("User: " + report.getUserFullName());
+                System.out.println("Description: " + report.getDescription());
+                System.out.println("Status: " + report.getStatus());
+                System.out.println("Location: " + report.getLocation());
+                System.out.println("Images: [" + 
+                    report.getImage1Path() + ", " + 
+                    report.getImage2Path() + ", " + 
+                    report.getImage3Path() + "]");
+            });
+
+            return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(reports.size()))
+                .body(reports);
+
         } catch (Exception e) {
+            System.err.println("Error fetching reports: " + e.getMessage());
+            e.printStackTrace();
+            
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to fetch reports: " + e.getMessage());
             errorResponse.put("details", e.getClass().getName());
@@ -58,7 +87,6 @@ public class UserReportController {
         }
     }
 
-    // Submit a new report
     @PostMapping(value = "/submit", consumes = "multipart/form-data")
     public ResponseEntity<?> submitReport(
             @RequestParam("description") String description,
@@ -70,58 +98,68 @@ public class UserReportController {
             @RequestParam(value = "image2", required = false) MultipartFile image2,
             @RequestParam(value = "image3", required = false) MultipartFile image3) {
 
+        System.out.println("\n=== Submitting New Report ===");
+        System.out.println("Description: " + description);
+        System.out.println("Building Name: " + buildingName);
+        System.out.println("User ID: " + userId);
+
         try {
-            // Validate user
             UserEntity user = userReportService.findUserById(userId);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "User not found"));
             }
 
-            // Handle image uploads
             List<String> imagePaths = new ArrayList<>();
-            try {
-                if (image1 != null && !image1.isEmpty()) imagePaths.add(saveImage(image1));
-                if (image2 != null && !image2.isEmpty()) imagePaths.add(saveImage(image2));
-                if (image3 != null && !image3.isEmpty()) imagePaths.add(saveImage(image3));
-            } catch (IOException e) {
-                System.err.println("Error saving images: " + e.getMessage());
+            if (image1 != null && !image1.isEmpty()) {
+                String path = saveImage(image1);
+                imagePaths.add(path);
+                System.out.println("Image 1 saved: " + path);
+            }
+            if (image2 != null && !image2.isEmpty()) {
+                String path = saveImage(image2);
+                imagePaths.add(path);
+                System.out.println("Image 2 saved: " + path);
+            }
+            if (image3 != null && !image3.isEmpty()) {
+                String path = saveImage(image3);
+                imagePaths.add(path);
+                System.out.println("Image 3 saved: " + path);
             }
 
-            // Create post with null checks
             PostEntity submittedReportPost = new PostEntity(); 
             submittedReportPost.setContent(description != null ? description : ""); 
             submittedReportPost.setUserId(userId); 
             submittedReportPost.setFullName(user.getFullName() != null ? user.getFullName() : ""); 
             submittedReportPost.setIdNumber(user.getIdNumber() != null ? user.getIdNumber() : "");
-            String userRole = (user.getRole() != null) ? user.getRole().toUpperCase() : "USER";
-            submittedReportPost.setUserRole(userRole);
+            submittedReportPost.setUserRole(user.getRole() != null ? user.getRole().toUpperCase() : "USER");
             submittedReportPost.setTimestamp(LocalDateTime.now()); 
             submittedReportPost.setImage(!imagePaths.isEmpty() ? imagePaths.get(0) : null); 
             submittedReportPost.setIsSubmittedReport(true); 
             submittedReportPost.setStatus("Pending");
             submittedReportPost.setVisible(true);
 
-            // Save post and report
             PostEntity savedPost = postService.createPost(submittedReportPost);
             if (savedPost == null) {
                 throw new RuntimeException("Failed to create post entry for the report");
             }
 
             ReportEntity report = userReportService.submitReport(description, imagePaths, user, latitude, longitude, buildingName);
+            System.out.println("Report created with ID: " + report.getReportId());
 
-            // Create response map
             Map<String, Object> response = new HashMap<>();
             response.put("report", report);
             response.put("post", savedPost);
             response.put("message", "Report submitted successfully" + 
-                (imagePaths.isEmpty() ? " (without images due to upload error)" : ""));
+                (imagePaths.isEmpty() ? " (without images)" : " with " + imagePaths.size() + " images"));
             response.put("imagePaths", imagePaths);
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            System.err.println("Error submitting report: " + e.getMessage());
             e.printStackTrace();
+            
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to submit report: " + e.getMessage());
             errorResponse.put("details", e.getClass().getName());
@@ -130,44 +168,50 @@ public class UserReportController {
         }
     }
 
-    // Get reports by user ID
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getReportsByUser(@PathVariable int userId) {
         try {
             List<ReportEntity> reports = userReportService.getReportsByUserId(userId);
-            return ResponseEntity.ok(reports);
+            System.out.println("Fetched " + reports.size() + " reports for user " + userId);
+            return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(reports.size()))
+                .body(reports);
         } catch (Exception e) {
+            System.err.println("Error fetching user reports: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to fetch reports: " + e.getMessage()));
         }
     }
 
-    // Get report status counts
     @GetMapping("/reportStatusCounts/{userId}")
     public ResponseEntity<?> getReportStatusCounts(@PathVariable int userId) {
         try {
             Map<String, Integer> statusCounts = userReportService.getReportStatusCounts(userId);
             return ResponseEntity.ok(statusCounts);
         } catch (Exception e) {
+            System.err.println("Error fetching status counts: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to fetch status counts: " + e.getMessage()));
         }
     }
 
-    // Update report status
     @PutMapping("/{reportId}/status")
     public ResponseEntity<?> updateReportStatus(
             @PathVariable int reportId,
             @RequestBody Map<String, String> statusUpdate) {
         try {
+            System.out.println("Updating status for report " + reportId + " to " + statusUpdate.get("status"));
+            
             ReportEntity report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new RuntimeException("Report not found"));
             
             report.setStatus(ReportStatus.valueOf(statusUpdate.get("status")));
             ReportEntity updatedReport = reportRepository.save(report);
             
+            System.out.println("Status updated successfully");
             return ResponseEntity.ok(updatedReport);
         } catch (Exception e) {
+            System.err.println("Error updating status: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to update report status: " + e.getMessage()));
         }
@@ -184,7 +228,7 @@ public class UserReportController {
         if (!directory.exists()) {
             boolean created = directory.mkdirs();
             if (!created) {
-                throw new IOException("Failed to create upload directory");
+                throw new IOException("Failed to create upload directory: " + uploadDir);
             }
         }
 
@@ -202,7 +246,7 @@ public class UserReportController {
             Files.createDirectories(filePath.getParent());
             Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
             
-            System.out.println("Debug - Saved image at: " + filePath.toString());
+            System.out.println("Image saved successfully at: " + filePath.toString());
             return "/uploads/" + fileName;
 
         } catch (IOException e) {

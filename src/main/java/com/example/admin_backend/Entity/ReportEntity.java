@@ -27,10 +27,10 @@ public class ReportEntity {
     private String image3Path;
 
     @Column(name = "report_type")
-    private String reportType; // Critical, Urgent, General
+    private String reportType;
 
     @Column(name = "concerned_office")
-    private String concernedOffice; // Automatically determined based on the description
+    private String concernedOffice;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -41,7 +41,7 @@ public class ReportEntity {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private ReportStatus status;
+    private ReportStatus status = ReportStatus.PENDING;
 
     @Column(name = "user_idnumber")
     private String userIdNumber;
@@ -50,21 +50,24 @@ public class ReportEntity {
     private String userFullName;
 
     @Column(name = "latitude")
-    private Double latitude;  // Allow latitude to be nullable
+    private Double latitude;
 
     @Column(name = "longitude")
-    private Double longitude; // Allow longitude to be nullable
+    private Double longitude;
 
-    @Column(name = "requires_review", nullable = false)
+    @Column(name = "requires_review")
     private boolean requiresReview;
 
-    // No-argument constructor
+    @Column(name = "post_id")
+    private Integer postId;
+
+    // Constructor
     public ReportEntity() {}
 
-    // Constructor with all parameters
-    public ReportEntity(String description, String location, String image1Path, String image2Path, String image3Path,
-                        String reportType, String concernedOffice, UserEntity user, LocalDateTime submittedAt,
-                        ReportStatus status, boolean requiresReview, Double latitude, Double longitude) {
+    public ReportEntity(String description, String location, String image1Path, 
+                       String image2Path, String image3Path, String reportType,
+                       String concernedOffice, UserEntity user, LocalDateTime submittedAt,
+                       ReportStatus status, boolean requiresReview, Double latitude, Double longitude) {
         this.description = description;
         this.location = location;
         this.image1Path = image1Path;
@@ -75,8 +78,8 @@ public class ReportEntity {
         this.user = user;
         this.submittedAt = submittedAt;
         this.status = status;
-        this.userIdNumber = user.getIdNumber();
-        this.userFullName = user.getFullName();
+        this.userIdNumber = user != null ? user.getIdNumber() : null;
+        this.userFullName = user != null ? user.getFullName() : null;
         this.requiresReview = requiresReview;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -153,6 +156,10 @@ public class ReportEntity {
 
     public void setUser(UserEntity user) {
         this.user = user;
+        if (user != null) {
+            this.userIdNumber = user.getIdNumber();
+            this.userFullName = user.getFullName();
+        }
     }
 
     public LocalDateTime getSubmittedAt() {
@@ -209,5 +216,13 @@ public class ReportEntity {
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+
+    public Integer getPostId() {
+        return postId;
+    }
+
+    public void setPostId(Integer postId) {
+        this.postId = postId;
     }
 }
