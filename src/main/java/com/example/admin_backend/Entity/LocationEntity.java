@@ -1,5 +1,7 @@
 package com.example.admin_backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -8,11 +10,11 @@ import jakarta.validation.constraints.*;
     @UniqueConstraint(columnNames = {"latitude", "longitude", "user_id"})
 })
 public class LocationEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long locationId;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;

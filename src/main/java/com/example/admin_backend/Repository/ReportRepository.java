@@ -4,38 +4,50 @@ import com.example.admin_backend.Entity.ReportEntity;
 import com.example.admin_backend.Entity.ReportStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<ReportEntity, Integer> {
-    // Basic queries
+    // Basic CRUD operations are inherited from JpaRepository
+   Optional<ReportEntity> findByReportId(int reportId);
+
+    // Status-based queries
     List<ReportEntity> findByStatus(ReportStatus status);
-    List<ReportEntity> findByUser_UserId(int userId);
+    List<ReportEntity> findByStatusAndUser_UserId(ReportStatus status, int userId);
     int countByStatusAndUser_UserId(ReportStatus status, int userId);
 
-    // Custom queries for reports with sorting
+    // Custom queries with sorting
     @Query("SELECT r FROM ReportEntity r ORDER BY r.submittedAt DESC")
     List<ReportEntity> findAllOrderBySubmittedAtDesc();
 
-    @Query("SELECT r FROM ReportEntity r WHERE r.status = 'PENDING' ORDER BY r.submittedAt DESC")
+    @Query("SELECT r FROM ReportEntity r WHERE r.status IN ('PENDING', 'ACKNOWLEDGED') ORDER BY r.submittedAt DESC")
     List<ReportEntity> findAllPendingReports();
+
+    @Query("SELECT r FROM ReportEntity r WHERE r.status = 'IN_PROGRESS' ORDER BY r.submittedAt DESC")
+    List<ReportEntity> findAllInProgressReports();
+
+    @Query("SELECT r FROM ReportEntity r WHERE r.status = 'RESOLVED' ORDER BY r.submittedAt DESC")
+    List<ReportEntity> findAllResolvedReports();
 
     // Count queries
     long countByStatus(ReportStatus status);
 
-    // Find by location
+    // Location-based queries
     List<ReportEntity> findByLocation(String location);
 
-    // Find by concerned office
+    // Office-based queries
     List<ReportEntity> findByConcernedOffice(String concernedOffice);
 
-    // Find by user and status
+    // User-based queries
+    List<ReportEntity> findByUser_UserId(int userId);
     List<ReportEntity> findByUser_UserIdAndStatus(int userId, ReportStatus status);
 
-    // Find reports with images
+    // Image-based queries
     @Query("SELECT r FROM ReportEntity r WHERE r.image1Path IS NOT NULL OR r.image2Path IS NOT NULL OR r.image3Path IS NOT NULL ORDER BY r.submittedAt DESC")
     List<ReportEntity> findReportsWithImages();
 
-    // Search reports
+    // Search queries
     @Query("SELECT r FROM ReportEntity r WHERE LOWER(r.description) LIKE LOWER(CONCAT('%', :keyword, '%')) ORDER BY r.submittedAt DESC")
-    List<ReportEntity> searchByDescriptionKeyword(String keyword);
+    List<ReportEntity> searchByDescriptionKeyword(@Param("keyword") String keyword);
 }

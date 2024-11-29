@@ -1,30 +1,15 @@
 package com.example.admin_backend.Service;
 
+import com.example.admin_backend.Entity.*;
+import com.example.admin_backend.Repository.*;
+import org.springframework.stereotype.Service;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-
-import com.example.admin_backend.Entity.KeywordCategory;
-import com.example.admin_backend.Entity.KeywordEntity;
-import com.example.admin_backend.Entity.ReportEntity;
-import com.example.admin_backend.Entity.ReportStatus;
-import com.example.admin_backend.Entity.SynonymEntity;
-import com.example.admin_backend.Entity.UserEntity;
-import com.example.admin_backend.Repository.KeywordRepository;
 import com.example.admin_backend.Repository.ReportRepository;
-import com.example.admin_backend.Repository.SynonymRepository;
-import com.example.admin_backend.Repository.UserRepository;
+
 
 @Service
 public class UserReportService {
@@ -39,9 +24,13 @@ public class UserReportService {
     private final Map<String, List<String>> keywordToOfficesMap;
     private final Map<String, List<String>> synonymToOfficesMap;
 
-    public UserReportService(KeywordRepository keywordRepository, ReportRepository reportRepository, 
-                             UserRepository userRepository, LocationService locationService, 
-                             SynonymRepository synonymRepository, FeedbackService feedbackService) {
+    public UserReportService(
+            KeywordRepository keywordRepository,
+            ReportRepository reportRepository,
+            UserRepository userRepository,
+            LocationService locationService,
+            SynonymRepository synonymRepository,
+            FeedbackService feedbackService) {
         this.keywordRepository = keywordRepository;
         this.reportRepository = reportRepository;
         this.userRepository = userRepository;
@@ -49,16 +38,24 @@ public class UserReportService {
         this.synonymRepository = synonymRepository;
         this.feedbackService = feedbackService;
 
-        // Initialize the keyword-to-office mappings
         keywordToOfficesMap = new HashMap<>();
         synonymToOfficesMap = new HashMap<>();
         initializeConcernedOfficeMappings();
     }
 
-    // Method to submit a report
-    public ReportEntity submitReport(String description, List<String> imagePaths, UserEntity user,
-                                     Double latitude, Double longitude, String buildingName) {
+  public ReportEntity updateFlagStatus(int reportId, Boolean isFlagged) {
+    ReportEntity report = reportRepository.findByReportId(reportId).orElse(null);
 
+    if (report != null) {
+        report.setIsFlagged(isFlagged);
+        return reportRepository.save(report);
+    }
+    return null; // Report not found
+}
+
+
+    public ReportEntity submitReport(String description, List<String> imagePaths, UserEntity user,
+                                   Double latitude, Double longitude, String buildingName) {
         validateAndSanitizeDescription(description);
 
         if (buildingName == null || buildingName.trim().isEmpty()) {
@@ -66,13 +63,19 @@ public class UserReportService {
         }
 
         ReportEntity report = new ReportEntity(
-            description, buildingName,
+            description,
+            buildingName,
             imagePaths.size() > 0 ? imagePaths.get(0) : null,
             imagePaths.size() > 1 ? imagePaths.get(1) : null,
             imagePaths.size() > 2 ? imagePaths.get(2) : null,
-            classifyReport(description), "",
-            user, LocalDateTime.now(), ReportStatus.PENDING, false,
-            latitude, longitude
+            classifyReport(description),
+            "",
+            user,
+            LocalDateTime.now(),
+            ReportStatus.PENDING,
+            false,
+            latitude,
+            longitude
         );
 
         String concernedOffices = determineConcernedOffice(description, report);
@@ -80,10 +83,8 @@ public class UserReportService {
 
         reportRepository.saveAndFlush(report);
 
-        // Create feedback entry
         feedbackService.createFeedbackForReport(report);
-        
-        // Save user location if provided
+
         if (latitude != null && longitude != null) {
             locationService.saveUserLocation(latitude, longitude, user.getIdNumber(), buildingName);
         }
@@ -103,50 +104,6 @@ public class UserReportService {
         }
     }
 
-    public void addOfficesToKeyword(String keywordName, List<String> newOffices) {
-        KeywordEntity keywordEntity = keywordRepository.findByKeywordName(keywordName)
-                .orElseThrow(() -> new RuntimeException("Keyword not found: " + keywordName));
-
-        List<String> offices = keywordEntity.getOffices();
-        if (offices == null) {
-            offices = new ArrayList<>();
-        }
-
-        for (String office : newOffices) {
-            if (!offices.contains(office)) {
-                offices.add(office);
-            }
-        }
-
-        keywordEntity.setOffices(offices);
-        keywordRepository.save(keywordEntity);
-    }
-
-    private void initializeConcernedOfficeMappings() {
-        // Initialize your keyword mappings here
-        // Example:
-        keywordToOfficesMap.put("emergency", Arrays.asList("Safety Office", "Health Services"));
-        // Add more mappings as needed
-    }
-
-    public List<String> getKeywordsByCategory(KeywordCategory category) {
-        return keywordRepository.findByCategory(category)
-                                .stream()
-                                .map(KeywordEntity::getKeywordName)
-                                .collect(Collectors.toList());
-    }
-
-    public List<String> getSynonyms(String keyword) {
-        Optional<KeywordEntity> keywordEntity = keywordRepository.findByKeywordName(keyword);
-        if (keywordEntity.isPresent()) {
-            return synonymRepository.findByKeywordId(keywordEntity.get().getId())
-                                    .stream()
-                                    .map(SynonymEntity::getSynonymName)
-                                    .collect(Collectors.toList());
-        }
-        return Collections.emptyList();
-    }
-
     private String classifyReport(String description) {
         if (containsKeywordsOrSynonyms(description, getKeywordsByCategory(KeywordCategory.CRITICALEMERGENCY))) {
             return "Critical Emergency";
@@ -155,6 +112,13 @@ public class UserReportService {
             return "Urgent Situation";
         }
         return "General Report";
+    }
+
+    public List<String> getKeywordsByCategory(KeywordCategory category) {
+        return keywordRepository.findByCategory(category)
+            .stream()
+            .map(KeywordEntity::getKeywordName)
+            .collect(Collectors.toList());
     }
 
     private boolean containsKeywordsOrSynonyms(String description, List<String> keywords) {
@@ -170,6 +134,17 @@ public class UserReportService {
             }
         }
         return false;
+    }
+
+    public List<String> getSynonyms(String keyword) {
+        Optional<KeywordEntity> keywordEntity = keywordRepository.findByKeywordName(keyword);
+        if (keywordEntity.isPresent()) {
+            return synonymRepository.findByKeywordId(keywordEntity.get().getId())
+                .stream()
+                .map(SynonymEntity::getSynonymName)
+                .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     private String determineConcernedOffice(String description, ReportEntity report) {
@@ -197,6 +172,11 @@ public class UserReportService {
         return String.join(", ", new HashSet<>(concernedOffices));
     }
 
+    private void initializeConcernedOfficeMappings() {
+        keywordToOfficesMap.put("emergency", Arrays.asList("Safety Office", "Health Services"));
+        // Add more mappings as needed
+    }
+
     private void logUnmatchedReport(String description) {
         try (FileWriter writer = new FileWriter("unmatched_reports.log", true)) {
             writer.write(LocalDateTime.now() + ": " + description + "\n");
@@ -219,8 +199,28 @@ public class UserReportService {
     public Map<String, Integer> getReportStatusCounts(int userId) {
         Map<String, Integer> statusCounts = new HashMap<>();
         statusCounts.put("pending", reportRepository.countByStatusAndUser_UserId(ReportStatus.PENDING, userId));
-        statusCounts.put("approved", reportRepository.countByStatusAndUser_UserId(ReportStatus.APPROVED, userId));
-        statusCounts.put("denied", reportRepository.countByStatusAndUser_UserId(ReportStatus.DENIED, userId));
+        statusCounts.put("acknowledged", reportRepository.countByStatusAndUser_UserId(ReportStatus.ACKNOWLEDGED, userId));
+        statusCounts.put("in_progress", reportRepository.countByStatusAndUser_UserId(ReportStatus.IN_PROGRESS, userId));
+        statusCounts.put("resolved", reportRepository.countByStatusAndUser_UserId(ReportStatus.RESOLVED, userId));
         return statusCounts;
+    }
+
+    public void addOfficesToKeyword(String keywordName, List<String> newOffices) {
+        KeywordEntity keywordEntity = keywordRepository.findByKeywordName(keywordName)
+                .orElseThrow(() -> new RuntimeException("Keyword not found: " + keywordName));
+
+        List<String> offices = keywordEntity.getOffices();
+        if (offices == null) {
+            offices = new ArrayList<>();
+        }
+
+        for (String office : newOffices) {
+            if (!offices.contains(office)) {
+                offices.add(office);
+            }
+        }
+
+        keywordEntity.setOffices(offices);
+        keywordRepository.save(keywordEntity);
     }
 }

@@ -1,12 +1,16 @@
 package com.example.admin_backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 
 @Entity
 @Table(name = "tblreport")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ReportEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int reportId;
@@ -32,12 +36,15 @@ public class ReportEntity {
     @Column(name = "concerned_office")
     private String concernedOffice;
 
-    @ManyToOne
+    @JsonBackReference("user-reports")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
     @Column(name = "submitted_at")
-    private LocalDateTime submittedAt;
+@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+private LocalDateTime submittedAt;
+
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
@@ -61,6 +68,9 @@ public class ReportEntity {
     @Column(name = "post_id")
     private Integer postId;
 
+    @Column(name = "isFlagged")
+    private Boolean isFlagged;
+
     // Constructor
     public ReportEntity() {}
 
@@ -83,6 +93,7 @@ public class ReportEntity {
         this.requiresReview = requiresReview;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.isFlagged = false;
     }
 
     // Getters and Setters
@@ -224,5 +235,13 @@ public class ReportEntity {
 
     public void setPostId(Integer postId) {
         this.postId = postId;
+    }
+
+    public Boolean getIsFlagged() {
+        return isFlagged;
+    }
+
+    public void setIsFlagged(Boolean isFlagged) {
+        this.isFlagged = isFlagged;
     }
 }
