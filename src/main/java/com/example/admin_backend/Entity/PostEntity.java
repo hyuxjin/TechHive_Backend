@@ -125,4 +125,26 @@ public class PostEntity {
 
     public LocalDateTime getLastModifiedAt() { return lastModifiedAt; }
     public void setLastModifiedAt(LocalDateTime lastModifiedAt) { this.lastModifiedAt = lastModifiedAt; }
+
+    @Override
+    public String toString() {
+        return "PostEntity{" +
+                "postId=" + postId +
+                ", content='" + content + '\'' +
+                ", timestamp=" + timestamp +
+                ", userId=" + userId +
+                ", isVerified=" + isVerified +
+                ", likes=" + likes +
+                ", dislikes=" + dislikes +
+                ", fullName='" + fullName + '\'' +
+                ", idNumber='" + idNumber + '\'' +
+                ", profile='" + profile + '\'' +
+                ", image='" + (image != null ? "image present" : "no image") + '\'' +
+                ", likedBy=" + likedBy +
+                ", dislikedBy=" + dislikedBy +
+                ", isDeleted=" + isDeleted +
+                ", isSubmittedReport=" + isSubmittedReport + 
+                ", status='" + status + '\'' +
+                '}';
+    }
 }

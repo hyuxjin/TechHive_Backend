@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +32,10 @@ public class PostService {
 
     @Autowired
     private ProfileRepository profileRepository;
+
+    @Autowired
+    @SuppressWarnings("unused")
+    private LeaderboardService leaderboardService;
 
     // Get all posts
     public List<PostEntity> getAllPosts() {
@@ -74,17 +77,21 @@ public class PostService {
     }
 
     private PostEntity createUserPost(PostEntity post) {
-        if (post.getUserId() == null) {
+        if (post.getUserId() == 0) {
             throw new IllegalArgumentException("User ID must be provided");
         }
 
         UserEntity user = userRepository.findById(post.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
 
-        post.setFullName(user.getFullName());
-        post.setProfile(profileRepository.findByAdmin(null)); // or appropriate method
-        post.setVisible(true);
-        post.setVerified(false);
+       // Ensure user points are not null and handle it
+       user.setPoints(Math.max(user.getPoints(), 0)); // Reset points to default if less than 0
+    
+       post.setFullName(user.getFullName());
+       post.setProfile(profileRepository.findByUser(user)); // Fetch profile
+       post.setTimestamp(LocalDateTime.now());
+       post.setIsSubmittedReport(post.getIsSubmittedReport()); 
+       post.setDeleted(false);
         
         return postRepository.save(post);
     }
@@ -286,12 +293,10 @@ public class PostService {
     }
 
     public CommentEntity addComment(CommentEntity comment, int postId) {
-        PostEntity post = postRepository.findByPostIdAndIsDeletedFalse(postId)
-            .orElseThrow(() -> new RuntimeException("Post not found"));
         comment.setPostId(postId);
         return commentRepository.save(comment);
     }
-
+    
     // Helper methods
     private void updateUserPoints(int userId, int pointChange) {
         if ("USER".equalsIgnoreCase(userRepository.findById(userId)

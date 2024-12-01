@@ -204,7 +204,8 @@ public class UserReportController {
                 System.out.println("Image 3 saved: " + path);
             }
 
-            PostEntity submittedReportPost = new PostEntity();
+            // Create a corresponding post entry for the submitted report 
+            PostEntity submittedReportPost = new PostEntity(); 
             submittedReportPost.setContent(description != null ? description : "");
             submittedReportPost.setUserId(userId);
             submittedReportPost.setFullName(user.getFullName() != null ? user.getFullName() : "");
@@ -215,6 +216,8 @@ public class UserReportController {
             submittedReportPost.setIsSubmittedReport(true);
             submittedReportPost.setStatus("Pending");
             submittedReportPost.setVisible(true);
+
+            postService.createPost(submittedReportPost);
 
             PostEntity savedPost = postService.createPost(submittedReportPost);
             if (savedPost == null) {
@@ -245,18 +248,69 @@ public class UserReportController {
         }
     }
 
+    // Fetch all reports submitted by a user
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getReportsByUser(@PathVariable int userId) {
+    public List<ReportEntity> getReportsByUser(@PathVariable int userId) {
+        return userReportService.getReportsByUserId(userId);
+    }
+
+    @GetMapping("/reportStatusCounts/{userId}")
+    public ResponseEntity<Map<String, Integer>> getReportStatusCounts(@PathVariable int userId) {
+        Map<String, Integer> statusCounts = userReportService.getReportStatusCounts(userId);
+        return ResponseEntity.ok(statusCounts);
+    }
+
+    // Fetch all pending reports
+    @GetMapping("/pending/monthly")
+    public ResponseEntity<List<Map<String, Object>>> getPendingReportsGroupedByMonth() {
         try {
-            List<ReportEntity> reports = userReportService.getReportsByUserId(userId);
-            System.out.println("Fetched " + reports.size() + " reports for user " + userId);
-            return ResponseEntity.ok()
-                .header("X-Total-Count", String.valueOf(reports.size()))
-                .body(reports);
+            List<Map<String, Object>> pendingReportsByMonth = new ArrayList<>();
+            
+            // Loop through each month (1 to 12) for the year 2024
+            for (int month = 1; month <= 12; month++) {
+                Map<String, Object> monthData = new HashMap<>();
+                
+                // Calculate the start and end of the month using YearMonth
+                LocalDateTime startOfMonth = LocalDateTime.of(2024, month, 1, 0, 0);
+                LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
+                
+                // Log the date range for debugging
+                System.out.println("Fetching reports for month: " + month);
+                System.out.println("Start of month: " + startOfMonth);
+                System.out.println("End of month: " + endOfMonth);
+                
+                try {
+                    // Get the count of pending reports for the given month
+                    long count = reportRepository.countByStatusAndSubmittedAtBetween(
+                        ReportStatus.PENDING,
+                        startOfMonth,
+                        endOfMonth
+                    );
+                    
+                    monthData.put("month", month);
+                    monthData.put("count", count);
+                    pendingReportsByMonth.add(monthData);
+                } catch (Exception e) {
+                    // Log the error for this specific month but continue processing
+                    System.err.println("Error processing month " + month + ": " + e.getMessage());
+                    monthData.put("month", month);
+                    monthData.put("count", 0);  // Default to 0 for error cases
+                    monthData.put("error", "Failed to fetch data");
+                    pendingReportsByMonth.add(monthData);
+                }
+            }
+            
+            if (pendingReportsByMonth.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            
+            return ResponseEntity.ok(pendingReportsByMonth);
+            
         } catch (Exception e) {
-            System.err.println("Error fetching user reports: " + e.getMessage());
+            System.err.println("Error occurred while fetching pending reports by month: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to fetch reports: " + e.getMessage()));
+                .body(List.of(Map.of("error", "Failed to fetch monthly report data: " + e.getMessage())));
         }
     }
 
