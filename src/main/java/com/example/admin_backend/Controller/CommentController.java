@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +30,13 @@ public class CommentController {
     // Get all comments
     @GetMapping
     public List<CommentEntity> getAllComments() {
-        return commentService.getAllComments();  // Implement this method in CommentService
+        return commentService.getAllComments(); // Implement this method in CommentService
+    }
+
+    // Get comments for a specific post
+    @GetMapping("/{postId}")
+    public List<CommentEntity> getCommentsByPost(@PathVariable int postId) {
+        return commentService.getCommentsByPostId(postId);
     }
 
     // Add a new comment
@@ -39,10 +45,15 @@ public class CommentController {
         return commentService.addComment(comment);
     }
 
-    // Delete a comment
+    // Delete a comment with soft-delete
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable int commentId, @RequestParam int adminId) {
-        boolean deleted = commentService.softDeleteComment(commentId, adminId);
+    public ResponseEntity<?> deleteComment(
+            @PathVariable int commentId,
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) Integer adminId,
+            @RequestParam(required = false) Integer superUserId) {
+        // Allow soft-delete for user, admin, or superuser
+        boolean deleted = commentService.softDeleteComment(commentId, userId, adminId, superUserId);
         if (deleted) {
             return ResponseEntity.ok().build();
         } else {
@@ -60,5 +71,4 @@ public class CommentController {
             return ResponseEntity.badRequest().body("Failed to update visibility.");
         }
     }
-
 }

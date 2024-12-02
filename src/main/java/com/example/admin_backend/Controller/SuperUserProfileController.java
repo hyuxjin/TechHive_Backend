@@ -67,23 +67,23 @@ public class SuperUserProfileController {
     }
 
     @GetMapping("/getProfilePicture/{superuserId}")
-    public ResponseEntity<?> getSuperUserProfilePicture(@PathVariable int superuserId) {
-        System.out.println("Fetching profile picture for SuperUser ID: " + superuserId); // Debug log
+public ResponseEntity<?> getSuperUserProfilePicture(@PathVariable int superuserId) {
+    System.out.println("Fetching profile picture for SuperUser ID: " + superuserId); // Debug log
 
-        Optional<SuperUserEntity> superUserOptional = superUserRepository.findBySuperuserId(superuserId);
-        if (!superUserOptional.isPresent()) {
-            return ResponseEntity.badRequest().body("Superuser not found.");
-        }
-
-        SuperUserProfileEntity superUserProfile = superUserProfileRepository.findBySuperuser(superUserOptional.get());
-        if (superUserProfile != null && superUserProfile.getSuperuserProfilePicture() != null) {
-            System.out.println("Profile picture found, returning byte array.");
-            return ResponseEntity.ok(superUserProfile.getSuperuserProfilePicture());
-        } else {
-            System.out.println("No profile picture found, returning default image.");
-            return ResponseEntity.ok(getDefaultProfilePicture()); // Ensure default picture path exists
-        }
+    Optional<SuperUserEntity> superUserOptional = superUserRepository.findById(superuserId); // Corrected method
+    if (!superUserOptional.isPresent()) {
+        return ResponseEntity.badRequest().body("Superuser not found.");
     }
+
+    SuperUserProfileEntity superUserProfile = superUserProfileRepository.findBySuperuser(superUserOptional.get());
+    if (superUserProfile != null && superUserProfile.getSuperuserProfilePicture() != null) {
+        System.out.println("Profile picture found, returning byte array.");
+        return ResponseEntity.ok(superUserProfile.getSuperuserProfilePicture());
+    } else {
+        System.out.println("No profile picture found, returning default image.");
+        return ResponseEntity.ok(getDefaultProfilePicture()); // Ensure default picture path exists
+    }
+}
 
     private byte[] getDefaultProfilePicture() {
         try {
