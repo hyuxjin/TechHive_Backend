@@ -1,211 +1,80 @@
 package com.example.admin_backend.Entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.List;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "tbluser")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Table(name = "user")
 public class UserEntity {
-   @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private int userId;
 
-   @Column(name = "username")
-   private String username;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-   @Column(name = "email")
-   private String email;
+    @Column(nullable = false, unique = true)
+    private String username;
 
-   @Column(name = "password")
-   private String password;
+    @Column(nullable = false, unique = true)
+    private String email;
 
-   @Column(name = "fullname")
-   private String fullName;
+    @Column(nullable = false)
+    private String password;
 
-   @Column(name = "idnumber")
-   private String idNumber;
+    // Default constructor
+    public UserEntity() {}
 
-   @Column(name = "role")
-   private String role;
+    // Constructor with fields
+    public UserEntity(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
 
-   @Column(name = "points", nullable = false)
-   private int points = 50;
+    // Getters and setters
+    public Long getId() {
+        return id;
+    }
 
-   @JsonManagedReference
-   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-   private List<LocationEntity> locations;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-   @JsonManagedReference("user-reports")
-   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-   private List<ReportEntity> reports;
+    public String getUsername() {
+        return username;
+    }
 
-   @Column(name = "reset_code")
-   private String resetCode;
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-   @Column(name = "reset_code_expiration")
-   private LocalDateTime resetCodeExpiration;
+    public String getEmail() {
+        return email;
+    }
 
-   @Column(name = "status", nullable = false)
-   private boolean status = true;
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-   public UserEntity() {}
+    public String getPassword() {
+        return password;
+    }
 
-   public UserEntity(String username, String email, String password, String fullName, String idNumber, String role) {
-       this.username = username;
-       this.email = email;
-       this.password = password;
-       this.fullName = fullName;
-       this.idNumber = idNumber;
-       this.role = role;
-       this.points = 50;
-   }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-   // Point System Methods
-   public void addPoints(int points) {
-       this.points += points;
-   }
-
-   public void subtractPoints(int points) {
-       this.points = Math.max(this.points - points, 0);
-   }
-
-   public void addLikePoints() {
-       this.points += 1;
-   }
-
-   public void addDislikePoints() {
-       this.points -= 1;
-   }
-
-   public void removeLikePoints() {
-       if (this.points > 0) {
-           this.points -= 1;
-       }
-   }
-
-   public void removeDislikePoints() {
-       this.points += 1;
-   }
-
-   public void resetPoints() {
-       this.points = Math.max(this.points, 0);
-   }
-
-   // RBAC Methods
-   public boolean isAdmin() {
-       return "ADMIN".equalsIgnoreCase(this.role);
-   }
-
-   public boolean isUser() {
-       return "USER".equalsIgnoreCase(this.role);
-   }
-
-   // Getters and Setters
-   public String getResetCode() {
-       return resetCode;
-   }
-
-   public void setResetCode(String resetCode) {
-       this.resetCode = resetCode;
-   }
-
-   public LocalDateTime getResetCodeExpiration() {
-       return resetCodeExpiration;
-   }
-
-   public void setResetCodeExpiration(LocalDateTime resetCodeExpiration) {
-       this.resetCodeExpiration = resetCodeExpiration;
-   }
-
-   public int getUserId() {
-       return userId;
-   }
-
-   public void setUserId(int userId) {
-       this.userId = userId;
-   }
-
-   public String getUsername() {
-       return username;
-   }
-
-   public void setUsername(String username) {
-       this.username = username;
-   }
-
-   public String getEmail() {
-       return email;
-   }
-
-   public void setEmail(String email) {
-       this.email = email;
-   }
-
-   public String getPassword() {
-       return password;
-   }
-
-   public void setPassword(String password) {
-       this.password = password;
-   }
-
-   public String getFullName() {
-       return fullName;
-   }
-
-   public void setFullName(String fullName) {
-       this.fullName = fullName;
-   }
-
-   public String getIdNumber() {
-       return idNumber;
-   }
-
-   public void setIdNumber(String idNumber) {
-       this.idNumber = idNumber;
-   }
-
-   public String getRole() {
-       return role;
-   }
-
-   public void setRole(String role) {
-       this.role = role;
-   }
-
-   public int getPoints() {
-       return points;
-   }
-
-   public void setPoints(int points) {
-       this.points = points;
-   }
-
-   public List<LocationEntity> getLocations() {
-       return locations;
-   }
-
-   public void setLocations(List<LocationEntity> locations) {
-       this.locations = locations;
-   }
-
-   public List<ReportEntity> getReports() {
-       return reports;
-   }
-
-   public void setReports(List<ReportEntity> reports) {
-       this.reports = reports;
-   }
-
-   public boolean getStatus() {
-       return status;
-   }
-
-   public void setStatus(boolean status) {
-       this.status = status;
-   }
+    // toString method for debugging
+    @Override
+    public String toString() {
+        return "UserEntity{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                '}';
+    }
 }

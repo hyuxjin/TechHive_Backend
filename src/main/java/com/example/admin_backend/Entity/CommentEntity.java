@@ -27,9 +27,6 @@ public class CommentEntity {
     @Column(name = "post_id", nullable = false)
     private int postId;
 
-    @Column(name = "user_id", nullable = true)
-    private Integer userId;
-
     @Column(name = "admin_id", nullable = true)
     private Integer adminId;
 
@@ -46,23 +43,13 @@ public class CommentEntity {
     private boolean isDeleted = false;
 
     @Column(name = "visible")
-    private boolean visible = true; // Default visibility is true
+    private boolean visible;
 
     // Default constructor
     public CommentEntity() {}
 
-    // Constructor for users
-    public CommentEntity(String content, int postId, int userId, String fullName, String idNumber) {
-        this.content = content;
-        this.postId = postId;
-        this.userId = userId;
-        this.fullName = fullName;
-        this.idNumber = idNumber;
-        this.timestamp = LocalDateTime.now();
-    }
-
-    // Constructor for admins/superusers
-    public CommentEntity(String content, int postId, Integer adminId, Integer superUserId, String fullName, String idNumber, boolean visible) {
+    // Constructor without commentId
+    public CommentEntity(String content, int postId, int adminId, String fullName, String idNumber, boolean visible) {
         this.content = content;
         this.postId = postId;
         this.adminId = adminId;
@@ -70,17 +57,13 @@ public class CommentEntity {
         this.fullName = fullName;
         this.idNumber = idNumber;
         this.timestamp = LocalDateTime.now();
-        this.visible = visible;
+        this.visible = visible; // Initialize visibility
     }
 
     // Getters and setters
 
     public Integer getCommentId() {
         return commentId;
-    }
-
-    public void setCommentId(Integer commentId) {
-        this.commentId = commentId;
     }
 
     public String getContent() {
@@ -105,14 +88,6 @@ public class CommentEntity {
 
     public void setPostId(int postId) {
         this.postId = postId;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
     }
 
     public Integer getAdminId() {
@@ -170,9 +145,7 @@ public class CommentEntity {
                 ", content='" + content + '\'' +
                 ", timestamp=" + timestamp +
                 ", postId=" + postId +
-                ", userId=" + userId +
                 ", adminId=" + adminId +
-                ", superUserId=" + superUserId +
                 ", fullName='" + fullName + '\'' +
                 ", idNumber='" + idNumber + '\'' +
                 ", isDeleted=" + isDeleted +
