@@ -340,34 +340,45 @@ public class UserReportController {
         if (image == null || image.isEmpty()) {
             throw new IllegalArgumentException("Invalid image file");
         }
-
-        String uploadDir = System.getProperty("user.home") + File.separator + "thetechhive_uploads";
+    
+        // Define the upload directory path
+        String uploadDir = "C:\\Users\\corbe\\ADMIN_TECHHIVE_FRONTEND\\public\\Upload_report";
         File directory = new File(uploadDir);
-        
+    
+        // Create the directory if it doesn't exist
         if (!directory.exists()) {
             boolean created = directory.mkdirs();
             if (!created) {
                 throw new IOException("Failed to create upload directory: " + uploadDir);
             }
         }
-
-        if (!directory.exists() || !directory.canWrite()) {
-            throw new IOException("Upload directory is not accessible or writable: " + uploadDir);
+    
+        // Check if the directory is writable
+        if (!directory.canWrite()) {
+            throw new IOException("Upload directory is not writable: " + uploadDir);
         }
-
+    
         try {
+            // Extract the original file name
             String originalFilename = image.getOriginalFilename();
-            String extension = originalFilename != null && originalFilename.contains(".") ? 
-                originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg"; // Default to .jpg if no extension is provided
+    
+            // Generate a unique file name
             String fileName = System.currentTimeMillis() + "_" + Math.round(Math.random() * 1000) + extension;
-            
-            Path filePath = Paths.get(uploadDir, fileName);
-            Files.createDirectories(filePath.getParent());
-            Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            
-            System.out.println("Image saved successfully at: " + filePath.toString());
-            return "/uploads/" + fileName;
-
+    
+            // Set the full file path
+            String fullFilePath = uploadDir + File.separator + fileName;
+    
+            // Save the file
+            image.transferTo(new File(fullFilePath));
+    
+            System.out.println("Image saved successfully at: " + fullFilePath);
+    
+            // Return the relative path (used by the frontend)
+            return "/Upload_report/" + fileName;
+    
         } catch (IOException e) {
             System.err.println("Failed to save image: " + e.getMessage());
             throw new IOException("Failed to save image: " + e.getMessage());
