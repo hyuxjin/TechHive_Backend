@@ -43,12 +43,12 @@ public class SuperUserProfileController {
             @RequestParam("superuserId") int superuserId,
             @RequestParam("file") MultipartFile file) {
         System.out.println("Received upload request for SuperUser ID: " + superuserId); // Debug log
-
+    
         Optional<SuperUserEntity> superUserOptional = superUserRepository.findById(superuserId);
         if (!superUserOptional.isPresent()) {
             return ResponseEntity.badRequest().body("Superuser not found.");
         }
-
+    
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty or not provided.");
         }
@@ -56,16 +56,18 @@ public class SuperUserProfileController {
             if (file.getSize() > 2 * 1024 * 1024) { // Max size of 2MB
                 return ResponseEntity.badRequest().body("File size exceeds the 2MB limit.");
             }
-
+    
             byte[] profilePicture = file.getBytes();
             SuperUserProfileEntity updatedProfile = superUserProfileService.saveSuperUserProfilePicture(superuserId, profilePicture);
-            return ResponseEntity.ok("Profile picture uploaded successfully.");
+    
+            // Return the profile ID after saving the picture
+            return ResponseEntity.ok("Profile picture uploaded successfully. Profile ID: " + updatedProfile.getSuperuserProfileId());
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading file.");
         }
     }
-
+    
     @GetMapping("/getProfilePicture/{superuserId}")
 public ResponseEntity<?> getSuperUserProfilePicture(@PathVariable int superuserId) {
     System.out.println("Fetching profile picture for SuperUser ID: " + superuserId); // Debug log

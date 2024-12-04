@@ -125,17 +125,19 @@ public class AdminController {
     // Request Password Reset
     @PostMapping("/requestPasswordReset")
     public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> requestBody) {
-        String email = requestBody.get("email");
-        try {
-            String resetCode = adminService.generateResetCode(email);
-            return ResponseEntity.ok("Reset code sent to " + email);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending reset code.");
-        }
+    String email = requestBody.get("email");
+    try {
+        String resetCode = adminService.generateResetCode(email);
+        // Now using the resetCode in the response
+        return ResponseEntity.ok("Reset code sent to " + email + " with code: " + resetCode);
+    } catch (NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending reset code.");
     }
+}
+
 
     // Verify Reset Code
     @PostMapping("/verifyResetCode")

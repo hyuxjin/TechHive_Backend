@@ -49,19 +49,22 @@ public class SuperUserController {
 
     // Request Password Reset
     @PostMapping("/requestPasswordReset")
-    public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> requestBody) {
-        String email = requestBody.get("email");
+public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> requestBody) {
+    String email = requestBody.get("email");
 
-        try {
-            String resetCode = superUserService.generatePasswordResetCode(email);
-            return ResponseEntity.ok("Password reset code sent successfully to " + email);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while sending password reset code.");
-        }
+    try {
+        String resetCode = superUserService.generatePasswordResetCode(email);
+        // Optionally log or use the resetCode
+        System.out.println("Generated Reset Code: " + resetCode); // Example log
+        // Return a response including the reset code if needed
+        return ResponseEntity.ok("Password reset code sent successfully to " + email + " with code: " + resetCode);
+    } catch (NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found.");
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while sending password reset code.");
     }
+}
 
     // Verify Reset Code
     @PostMapping("/verifyResetCode")
