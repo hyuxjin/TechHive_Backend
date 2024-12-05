@@ -26,176 +26,112 @@ import com.example.admin_backend.Service.SuperUserService;
 public class SuperUserController {
 
     @Autowired
-    private SuperUserService superUserService;
+    private SuperUserService superUserService; // Correct naming of the service
 
     @GetMapping("/print")
     public String itWorks() {
-        return "It works!";
+        return "It works";
     }
 
-    // Create SuperUser
+    // Create
     @PostMapping("/insertSuperUser")
-    public ResponseEntity<?> insertSuperUser(@RequestBody SuperUserEntity superUser) {
-        if (superUser.getSuperUsername() == null || superUser.getSuperUsername().isEmpty()) {
-            return ResponseEntity.badRequest().body("SuperUsername cannot be null or empty.");
+    public ResponseEntity<SuperUserEntity> insertSuperUser(@RequestBody SuperUserEntity superUser) {
+        // Ensure superUser has a non-null superusername
+        if (superUser.getSuperUsername() == null || superUser.getSuperUsername().isEmpty()) { 
+            return ResponseEntity.badRequest().body(null); // Error if superUsername is null
         }
         try {
             SuperUserEntity createdUser = superUserService.insertSuperUser(superUser);
             return ResponseEntity.ok(createdUser);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating SuperUser: " + e.getMessage());
-        }
-    }
-
-    // Request Password Reset
-    @PostMapping("/requestPasswordReset")
-public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> requestBody) {
-    String email = requestBody.get("email");
-
-    try {
-        String resetCode = superUserService.generatePasswordResetCode(email);
-        // Optionally log or use the resetCode
-        System.out.println("Generated Reset Code: " + resetCode); // Example log
-        // Return a response including the reset code if needed
-        return ResponseEntity.ok("Password reset code sent successfully to " + email + " with code: " + resetCode);
-    } catch (NoSuchElementException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found.");
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while sending password reset code.");
-    }
-}
-
-    // Verify Reset Code
-    @PostMapping("/verifyResetCode")
-    public ResponseEntity<?> verifyResetCode(@RequestBody Map<String, String> requestBody) {
-        String email = requestBody.get("email");
-        String resetCode = requestBody.get("resetCode");
-
-        try {
-            superUserService.validateResetCode(email, resetCode);
-            return ResponseEntity.ok("Reset code verified successfully.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found.");
-        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error verifying reset code.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // Corrected from Response.Entity
         }
     }
 
-    // Reset Password
-    @PostMapping("/resetPassword")
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> requestBody) {
-        String email = requestBody.get("email");
-        String newPassword = requestBody.get("newPassword");
-
-        try {
-            superUserService.resetPassword(email, newPassword);
-            return ResponseEntity.ok("Password reset successfully.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error resetting password.");
-        }
-    }
-
-    // Read All SuperUsers
+    // Read
     @GetMapping("/getAllSuperUsers")
-    public ResponseEntity<List<SuperUserEntity>> getAllSuperUsers() {
-        return ResponseEntity.ok(superUserService.getAllSuperUsers());
+    public List<SuperUserEntity> getAllSuperUsers() {
+        return superUserService.getAllSuperUsers();
     }
 
-    // Update SuperUser Password
+    // Update a superuser record
     @PutMapping("/updateSuperUserPassword")
-    public ResponseEntity<?> updateSuperUserPassword(
-            @RequestParam Integer superuserId,
-            @RequestBody Map<String, String> requestBody) {
-        String currentPassword = requestBody.get("currentSuperUserPassword");
-        String newPassword = requestBody.get("newSuperUserPassword");
+public ResponseEntity<?> updateSuperUserPassword(@RequestParam Integer superuserId, 
+                                                 @RequestBody Map<String, String> requestBody) {
+    String currentSuperUserPassword = requestBody.get("currentSuperUserPassword");
+    String newSuperUserPassword = requestBody.get("newSuperUserPassword");
+
 
         try {
-            SuperUserEntity updatedSuperUser = superUserService.updateSuperUser(superuserId, newPassword, currentPassword);
+            SuperUserEntity updatedSuperUser = superUserService.updateSuperUser(superuserId, newSuperUserPassword, currentSuperUserPassword);
             return ResponseEntity.ok(updatedSuperUser);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error.");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
     }
 
-    // SuperUser Sign-in
+    // Sign-in
     @PostMapping("/signin")
 public ResponseEntity<?> signIn(@RequestBody Map<String, String> loginData) {
-    String superUserIdNumber = loginData.get("superUserIdNumber");
+    String superUserIdNumber = loginData.get("superUserIdNumber");  // Corrected variable name
     String superUserPassword = loginData.get("superUserPassword");
 
-    System.out.println("Login attempt with ID: " + superUserIdNumber); // Debug log
-
-    if (superUserIdNumber == null || superUserPassword == null) {
-        return ResponseEntity.badRequest().body("ID number and password are required");
-    }
-
     try {
-        SuperUserEntity superuser = superUserService.getSuperUserBySuperUserIdNumberAndSuperUserPassword(
-                superUserIdNumber, superUserPassword);
-        
+        SuperUserEntity superuser = superUserService.getSuperUserBySuperUserIdNumberAndSuperUserPassword(superUserIdNumber, superUserPassword);
         if (superuser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Super User ID Number or Super User password.");
         }
-        
+
+        // Check if the account is disabled
         if (!superuser.getStatus()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is disabled");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is disabled.");
         }
 
         Map<String, Object> response = new HashMap<>();
-        response.put("token", "dummyToken");
+        response.put("token", "dummyToken");  // Replace with actual token if using JWT
         response.put("superuserId", superuser.getSuperUserId());
         response.put("superUsername", superuser.getSuperUsername());
         response.put("fullName", superuser.getFullName());
         response.put("email", superuser.getEmail());
-        
+        response.put("superUserIdNumber", superuser.getSuperUserIdNumber());
         return ResponseEntity.ok(response);
-        
-    } catch (IllegalArgumentException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body("Invalid credentials: " + e.getMessage());
     } catch (Exception e) {
-        e.printStackTrace(); // This will print to server logs
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("An error occurred during sign-in: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during sign-in.");
     }
 }
 
-    // Get SuperUser by Username
+
+    // Get superuser by ID number
     @GetMapping("/getBySuperUsername")
     public ResponseEntity<SuperUserEntity> getSuperUserBySuperUsername(@RequestParam String superUsername) {
-        SuperUserEntity superUser = superUserService.getSuperUserBySuperUsername(superUsername);
-        if (superUser == null) {
+        SuperUserEntity superuser = superUserService.getSuperUserBySuperUsername(superUsername); // Corrected method call
+        if (superuser == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(superUser);
+        return ResponseEntity.ok(superuser);
     }
 
-    // Update SuperUser Status
     @PutMapping("/updateStatus")
-    public ResponseEntity<?> updateSuperUserStatus(@RequestBody Map<String, Object> requestBody) {
-        String superUserIdNumber = (String) requestBody.get("superUserIdNumber");
-        Boolean newStatus = (Boolean) requestBody.get("status");
+public ResponseEntity<?> updateSuperUserStatus(@RequestBody Map<String, Object> requestBody) {
+    String superUserIdNumber = (String) requestBody.get("superUserIdNumber");
+    boolean newStatus = (Boolean) requestBody.get("status");
 
-        try {
-            SuperUserEntity updatedSuperUser = superUserService.updateSuperUserStatus(superUserIdNumber, newStatus);
-            return ResponseEntity.ok(updatedSuperUser);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating status.");
-        }
+    try {
+        SuperUserEntity updatedSuperUser = superUserService.updateSuperUserStatus(superUserIdNumber, newStatus);
+        return ResponseEntity.ok(updatedSuperUser);
+    } catch (NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating status.");
     }
+}
+
 }

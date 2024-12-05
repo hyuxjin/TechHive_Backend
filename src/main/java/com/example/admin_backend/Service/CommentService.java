@@ -21,62 +21,59 @@ public class CommentService {
     @Autowired
     private PostRepository postRepository;
 
-    // Get all comments for admin/superuser
     public List<CommentEntity> getAllComments() {
-        return commentRepository.findAll();
-    }
+    return commentRepository.findAll();
+}
 
-    // Get comments by postId for users
-    public List<CommentEntity> getCommentsByPostId(int postId) {
-        return commentRepository.findByPostIdAndIsDeletedFalse(postId);
-    }
 
-    // Add a comment (for users, admins, or superusers)
-    public CommentEntity addComment(CommentEntity comment) {
-        comment.setTimestamp(LocalDateTime.now());
+   public CommentEntity addComment(CommentEntity comment) {
+    comment.setTimestamp(LocalDateTime.now());
 
-        // Validation for admin/superuser roles
-        if (comment.getAdminId() == null && comment.getSuperUserId() == null && comment.getUserId() == null) {
-            throw new IllegalArgumentException("Either User, Admin, or SuperUser must be set");
-        }
+   if (comment.getAdminId() == null && comment.getSuperUserId() == null) {
+    throw new IllegalArgumentException("Either Admin or SuperUser must be set");
+}
 
-        return commentRepository.save(comment);
-    }
 
-    // Soft delete a comment (for users, admins, or superusers)
-    public boolean softDeleteComment(int commentId, Integer userId, Integer adminId, Integer superUserId) {
+    return commentRepository.save(comment);
+}
+
+
+
+  public boolean softDeleteComment(int commentId, int adminOrSuperUserId) {
         Optional<CommentEntity> commentOpt = commentRepository.findById(commentId);
-
+        
         if (commentOpt.isPresent()) {
             CommentEntity comment = commentOpt.get();
-
+            
             Optional<PostEntity> postOpt = postRepository.findById(comment.getPostId());
             if (postOpt.isPresent()) {
                 PostEntity post = postOpt.get();
-
-                // Check permissions for user, admin, or superuser
-                if ((userId != null && (comment.getUserId() == userId || post.getUserId() == userId)) ||
-                    (adminId != null && (comment.getAdminId() != null && comment.getAdminId().equals(adminId) || post.getAdminId() == adminId)) ||
-                    (superUserId != null && comment.getSuperUserId() != null && comment.getSuperUserId().equals(superUserId))) {
+                
+                // Check if the admin or superuser is the comment owner or the post owner
+                if ((comment.getAdminId() != null && comment.getAdminId().equals(adminOrSuperUserId)) ||
+                    (comment.getSuperUserId() != null && comment.getSuperUserId().equals(adminOrSuperUserId)) ||
+                    post.getAdminId() == adminOrSuperUserId) {
                     comment.setDeleted(true);
                     commentRepository.save(comment);
                     return true;
-                }
             }
         }
-
-        return false;
     }
+    
+    return false;
+}
 
-    // Update visibility of a comment (admin/superuser only)
-    public boolean updateCommentVisibility(int commentId, boolean visible) {
-        Optional<CommentEntity> commentOpt = commentRepository.findById(commentId);
-        if (commentOpt.isPresent()) {
-            CommentEntity comment = commentOpt.get();
-            comment.setVisible(visible); // Set the visible field
-            commentRepository.save(comment); // Save the updated entity
-            return true;
-        }
-        return false;
+public boolean updateCommentVisibility(int commentId, boolean visible) {
+    Optional<CommentEntity> commentOpt = commentRepository.findById(commentId);
+    if (commentOpt.isPresent()) {
+        CommentEntity comment = commentOpt.get();
+        comment.setVisible(visible);  // Set the visible field
+        commentRepository.save(comment);  // Save the updated entity
+        return true;
     }
+    return false;
+}
+
+
+
 }

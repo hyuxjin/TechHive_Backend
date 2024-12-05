@@ -8,7 +8,14 @@ import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.admin_backend.Entity.AdminEntity;
 import com.example.admin_backend.Service.AdminService;
@@ -26,22 +33,24 @@ public class AdminController {
         return "It works";
     }
 
-    // Create Admin
+    // Create
     @PostMapping("/insertAdmin")
     public AdminEntity insertAdmin(@RequestBody AdminEntity admin) {
-        admin.setStatus(true); // Default status to active
+        if (admin.getStatus()) {
+            admin.setStatus(true);
+        }
         return adminService.insertAdmin(admin);
     }
 
-    // Retrieve All Admins
+    // Read
     @GetMapping("/getAllAdmins")
     public List<AdminEntity> getAllAdmins() {
         return adminService.getAllAdmins();
     }
 
-    // Update Password
+    // Update an admin record
     @PutMapping("/updatePassword")
-    public ResponseEntity<?> updatePassword(@RequestParam Integer adminId,
+    public ResponseEntity<?> updatePassword(@RequestParam Integer adminId, 
                                             @RequestBody Map<String, String> requestBody) {
         String currentPassword = requestBody.get("currentPassword");
         String newPassword = requestBody.get("newPassword");
@@ -62,11 +71,11 @@ public class AdminController {
     // Sign-in
     @PostMapping("/signin")
     public ResponseEntity<?> signIn(@RequestBody Map<String, String> loginData) {
-        String idNumber = loginData.get("idNumber");
+        String idNumber = loginData.get("idNumber"); // Changed from email to idNumber
         String password = loginData.get("password");
 
         try {
-            AdminEntity admin = adminService.getAdminByIdNumberAndPassword(idNumber, password);
+            AdminEntity admin = adminService.getAdminByIdNumberAndPassword(idNumber, password); // Using idNumber instead of email
             if (admin == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID Number or password.");
             }
@@ -76,7 +85,7 @@ public class AdminController {
             }
 
             Map<String, Object> response = new HashMap<>();
-            response.put("token", "dummyToken"); // Replace with actual JWT if applicable
+            response.put("token", "dummyToken"); // Replace with actual token if using JWT
             response.put("adminId", admin.getAdminId());
             response.put("adminname", admin.getAdminname());
             response.put("fullName", admin.getFullName());
@@ -84,95 +93,38 @@ public class AdminController {
             response.put("idNumber", admin.getIdNumber());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during sign-in.");
         }
     }
 
-    // Retrieve Admin by Username
+    // Get admin by ID number
     @GetMapping("/getByAdminname")
-    public ResponseEntity<?> getAdminByAdminname(@RequestParam String adminname) {
-        try {
-            AdminEntity admin = adminService.getAdminByAdminname(adminname);
-            return ResponseEntity.ok(admin);
-        } catch (NoSuchElementException e) {
+    public ResponseEntity<AdminEntity> getAdminByAdminname(@RequestParam String adminname) {
+        AdminEntity admin = adminService.getAdminByAdminname(adminname);
+        if (admin == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(admin);
+    }
+
+       @PutMapping("/updateStatus")
+public ResponseEntity<?> updateAdminStatus(@RequestBody Map<String, Object> requestBody) {
+    String idNumber = (String) requestBody.get("idNumber");
+    Boolean status = (Boolean) requestBody.get("status");
+
+    try {
+        AdminEntity admin = adminService.getAdminByIdNumber(idNumber); // Use your existing service method to get the admin by ID
+        if (admin == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found.");
         }
-    }
 
-    // Update Admin Status
-    @PutMapping("/updateStatus")
-    public ResponseEntity<?> updateAdminStatus(@RequestBody Map<String, Object> requestBody) {
-        String idNumber = (String) requestBody.get("idNumber");
-        Boolean status = (Boolean) requestBody.get("status");
+        // Update the admin's status
+        admin.setStatus(status);
+        adminService.saveAdmin(admin);  // Save the updated admin entity
 
-        try {
-            AdminEntity admin = adminService.getAdminByIdNumber(idNumber);
-            if (admin == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found.");
-            }
-
-            admin.setStatus(status);
-            adminService.saveAdmin(admin);
-
-            return ResponseEntity.ok("Status updated successfully.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating admin status.");
-        }
-    }
-
-    // Request Password Reset
-    @PostMapping("/requestPasswordReset")
-    public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> requestBody) {
-    String email = requestBody.get("email");
-    try {
-        String resetCode = adminService.generateResetCode(email);
-        // Now using the resetCode in the response
-        return ResponseEntity.ok("Reset code sent to " + email + " with code: " + resetCode);
-    } catch (NoSuchElementException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        return ResponseEntity.ok("Status updated successfully.");  // Return the updated admin
     } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending reset code.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating admin status.");
     }
 }
-
-
-    // Verify Reset Code
-    @PostMapping("/verifyResetCode")
-    public ResponseEntity<?> verifyResetCode(@RequestBody Map<String, String> requestBody) {
-        String email = requestBody.get("email");
-        String resetCode = requestBody.get("resetCode");
-
-        try {
-            adminService.validateResetCode(email, resetCode);
-            return ResponseEntity.ok("Reset code verified successfully.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
-        }
-    }
-
-    // Reset Password
-    @PostMapping("/resetPassword")
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> requestBody) {
-        String email = requestBody.get("email");
-        String newPassword = requestBody.get("newPassword");
-
-        try {
-            adminService.resetPassword(email, newPassword);
-            return ResponseEntity.ok("Password reset successfully.");
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error resetting password.");
-        }
-    }
 }
