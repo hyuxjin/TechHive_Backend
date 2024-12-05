@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,35 +60,59 @@ public class AdminController {
         }
     }
 
+    // Session-based for Admin
+    @GetMapping("/admin-validate-session")
+    public ResponseEntity<?> validateSession(@RequestHeader("Authorization") String token) {
+    try {
+        String idNumber = Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token.replace("Bearer ", ""))
+                .getBody()
+                .getSubject();
+
+        AdminEntity admin = adminService.getAdminByIdNumber(idNumber);
+        if (admin != null) {
+            return ResponseEntity.ok("Session is valid for admin: " + admin.getFullName());
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid session or admin not found.");
+        }
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token.");
+    }
+}
+
     // Sign-in
     @PostMapping("/signin")
     public ResponseEntity<?> signIn(@RequestBody Map<String, String> loginData) {
-        String idNumber = loginData.get("idNumber");
-        String password = loginData.get("password");
+    String idNumber = loginData.get("idNumber");
+    String password = loginData.get("password");
 
-        try {
-            AdminEntity admin = adminService.getAdminByIdNumberAndPassword(idNumber, password);
-            if (admin == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID Number or password.");
-            }
-
-            if (!admin.getStatus()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is disabled.");
-            }
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", "dummyToken"); // Replace with actual JWT if applicable
-            response.put("adminId", admin.getAdminId());
-            response.put("adminname", admin.getAdminname());
-            response.put("fullName", admin.getFullName());
-            response.put("email", admin.getEmail());
-            response.put("idNumber", admin.getIdNumber());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during sign-in.");
+    try {
+        AdminEntity admin = adminService.getAdminByIdNumberAndPassword(idNumber, password);
+        if (admin == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID Number or password.");
         }
+
+        if (!admin.getStatus()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is disabled.");
+        }
+
+        String token = generateToken(admin);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("adminId", admin.getAdminId());
+        response.put("adminname", admin.getAdminname());
+        response.put("fullName", admin.getFullName());
+        response.put("email", admin.getEmail());
+        response.put("idNumber", admin.getIdNumber());
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during sign-in.");
     }
+}
+
 
     // Retrieve Admin by Username
     @GetMapping("/getByAdminname")
