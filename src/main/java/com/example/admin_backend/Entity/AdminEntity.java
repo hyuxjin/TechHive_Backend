@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tbladmin")
@@ -13,32 +14,42 @@ public class AdminEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "adminId")
+    @Column(name = "adminId", nullable = false, updatable = false)
     private int adminId;
 
-    @Column(name = "adminname")
+    @Column(name = "adminname", nullable = false, unique = true)
     private String adminname;
 
-    @Column(name = "email")
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "fullname")
+    @Column(name = "fullname", nullable = false)
     private String fullName;
 
-    @Column(name = "idnumber")
+    @Column(name = "idnumber", nullable = false, unique = true)
     private String idNumber;
 
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     private boolean status;
 
+    @Column(name = "reset_code")
+    private String resetCode;
+
+    @Column(name = "reset_code_timestamp")
+    private LocalDateTime resetCodeTimestamp;
+
+    @Column(name = "reset_code_verified")
+    private Boolean resetCodeVerified = false; // Default to false
+
+    // Constructors
     public AdminEntity() {
         super();
     }
 
-    public AdminEntity(int adminId, String adminname, String email, String password, String fullName, String idNumber) {
+    public AdminEntity(int adminId, String adminname, String email, String password, String fullName, String idNumber, boolean status) {
         super();
         this.adminId = adminId;
         this.adminname = adminname;
@@ -49,8 +60,7 @@ public class AdminEntity {
         this.status = status;
     }
 
-    // Getters and setters
-
+    // Getters and Setters
     public int getAdminId() {
         return adminId;
     }
@@ -105,5 +115,29 @@ public class AdminEntity {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public String getResetCode() {
+        return resetCode;
+    }
+
+    public void setResetCode(String resetCode) {
+        this.resetCode = resetCode;
+    }
+
+    public LocalDateTime getResetCodeTimestamp() {
+        return resetCodeTimestamp;
+    }
+
+    public void setResetCodeTimestamp(LocalDateTime resetCodeTimestamp) {
+        this.resetCodeTimestamp = resetCodeTimestamp;
+    }
+
+    public Boolean getResetCodeVerified() {
+        return resetCodeVerified;
+    }
+
+    public void setResetCodeVerified(Boolean resetCodeVerified) {
+        this.resetCodeVerified = resetCodeVerified;
     }
 }
