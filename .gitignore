@@ -1,0 +1,37 @@
+# Application properties
+src/main/resources/application.properties
+target/classes/application.properties
+
+# Target directory and its contents
+target/
+target/admin_backend-0.0.1-SNAPSHOT.jar
+target/admin_backend-0.0.1-SNAPSHOT.jar.original
+target/classes/**/*.class
+target/maven-archiver/
+target/maven-status/
+target/surefire-reports/
+
+# IDE and build files
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.springBeans
+
+# Logs
+*.log
+
+# Compiled class files
+*.class
+
+# Maven specific
+mvnw
+mvnw.cmd
+.mvn/
+*.java
+*.java
+*.java
+src/main/resources/application.properties
+/src
