@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tblsuperuser")
@@ -13,58 +14,51 @@ public class SuperUserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "superuserid")  // Map to the database primary key column name
-    private int superuserId;
+    @Column(name = "superuserid", nullable = false, updatable = false)
+    private int superUserId;
 
-    @Column(name = "superusername", nullable = false)
-    private String superusername;
+    @Column(name = "superusername", nullable = false, unique = true)
+    private String superUsername;
 
-    @Column(name = "email")  // Match the field exactly
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "superuserpassword")  // Match the field exactly
-    private String superuserpassword;
+    @Column(name = "superuserpassword", nullable = false)
+    private String superUserPassword;
 
-    @Column(name = "fullname")  // Match the field exactly
+    @Column(name = "fullname", nullable = false)
     private String fullName;
 
-    @Column(name = "superuseridnumber")  // Match the field exactly
-    private String superuseridNumber;
+    @Column(name = "superuseridnumber", nullable = false, unique = true)
+    private String superUserIdNumber;
 
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     private boolean status;
 
-    // Constructor, getters, and setters
-    public SuperUserEntity() {
-        super();
-    }
+    @Column(name = "reset_code")
+    private String resetCode;
 
-    public SuperUserEntity(int superuserId, String superusername, String email, String superuserpassword, String fullName, String superuseridNumber) {
-        this.superuserId = superuserId;
-        this.superusername = superusername;
-        this.email = email;
-        this.superuserpassword = superuserpassword;
-        this.fullName = fullName;
-        this.superuseridNumber = superuseridNumber;
-        this.status = status;
-    }
+    @Column(name = "reset_code_timestamp")
+    private LocalDateTime resetCodeTimestamp;
+
+    @Column(name = "reset_code_verified")
+    private Boolean resetCodeVerified = false; // Default value is false
 
     // Getters and Setters
-
     public int getSuperUserId() {
-        return superuserId;
+        return superUserId;
     }
 
-    public void setSuperUserId(int superuserId) {
-        this.superuserId = superuserId;
+    public void setSuperUserId(int superUserId) {
+        this.superUserId = superUserId;
     }
 
     public String getSuperUsername() {
-        return superusername;
+        return superUsername;
     }
 
-    public void setSuperUsername(String superusername) {
-        this.superusername = superusername;
+    public void setSuperUsername(String superUsername) {
+        this.superUsername = superUsername;
     }
 
     public String getEmail() {
@@ -76,11 +70,11 @@ public class SuperUserEntity {
     }
 
     public String getSuperUserPassword() {
-        return superuserpassword;
+        return superUserPassword;
     }
 
-    public void setSuperUserPassword(String superuserpassword) {
-        this.superuserpassword = superuserpassword;
+    public void setSuperUserPassword(String superUserPassword) {
+        this.superUserPassword = superUserPassword;
     }
 
     public String getFullName() {
@@ -92,11 +86,11 @@ public class SuperUserEntity {
     }
 
     public String getSuperUserIdNumber() {
-        return superuseridNumber;
+        return superUserIdNumber;
     }
 
-    public void setSuperUserIdNumber(String superuseridNumber) {
-        this.superuseridNumber = superuseridNumber;
+    public void setSuperUserIdNumber(String superUserIdNumber) {
+        this.superUserIdNumber = superUserIdNumber;
     }
 
     public boolean getStatus() {
@@ -105,5 +99,29 @@ public class SuperUserEntity {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public String getResetCode() {
+        return resetCode;
+    }
+
+    public void setResetCode(String resetCode) {
+        this.resetCode = resetCode;
+    }
+
+    public LocalDateTime getResetCodeTimestamp() {
+        return resetCodeTimestamp;
+    }
+
+    public void setResetCodeTimestamp(LocalDateTime resetCodeTimestamp) {
+        this.resetCodeTimestamp = resetCodeTimestamp;
+    }
+
+    public Boolean getResetCodeVerified() {
+        return resetCodeVerified;
+    }
+
+    public void setResetCodeVerified(Boolean resetCodeVerified) {
+        this.resetCodeVerified = resetCodeVerified;
     }
 }

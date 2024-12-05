@@ -4,70 +4,114 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.admin_backend.Entity.ProfileEntity;
+import com.example.admin_backend.Entity.UserEntity;
 import com.example.admin_backend.Entity.AdminEntity;
 import com.example.admin_backend.Repository.ProfileRepository;
+import com.example.admin_backend.Repository.UserRepository;
 import com.example.admin_backend.Repository.AdminRepository;
 import com.example.admin_backend.Service.ProfileService;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
-@RequestMapping("/admin/profile")
+@RequestMapping("/api/profile")
 public class ProfileController {
-
     @Autowired
     private ProfileService profileService;
-
+    
     @Autowired
-    private AdminRepository arepo;
-
+    private UserRepository userRepository;
+    
     @Autowired
-    private ProfileRepository prepo;
+    private AdminRepository adminRepository;
+    
+    @Autowired
+    private ProfileRepository profileRepository;
 
-    @PostMapping("/uploadProfilePicture")
-    public ProfileEntity uploadProfilePicture(@RequestParam("adminId") int adminId, @RequestParam("file") MultipartFile file) {
+    // Upload Profile Picture for both User and Admin
+    @PostMapping("/{role}/uploadProfilePicture")
+    public ResponseEntity<?> uploadProfilePicture(
+            @PathVariable String role,
+            @RequestParam("id") int id,
+            @RequestParam("file") MultipartFile file) {
+        
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File cannot be empty");
+        }
+
+        try {
+            byte[] profilePicture = file.getBytes();
+            ProfileEntity savedProfile;
+            
+            if ("user".equalsIgnoreCase(role)) {
+                savedProfile = profileService.saveUserProfilePicture(id, profilePicture);
+            } else if ("admin".equalsIgnoreCase(role)) {
+                savedProfile = profileService.saveAdminProfilePicture(id, profilePicture);
+            } else {
+                return ResponseEntity.badRequest().body("Invalid role specified");
+            }
+            
+            return ResponseEntity.ok(savedProfile);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body("Failed to process file: " + e.getMessage());
+        }
+    }
+
+    // Get Profile Picture for both User and Admin
+    @GetMapping("/{role}/getProfilePicture/{id}")
+    public ResponseEntity<byte[]> getProfilePicture(@PathVariable String role, @PathVariable int id) {
         byte[] profilePicture = null;
-        try {
-            profilePicture = file.getBytes();
-        } catch (IOException e) {
-            e.printStackTrace();
+        
+        if ("user".equalsIgnoreCase(role)) {
+            UserEntity user = userRepository.findById(id).orElse(null);
+            if (user != null) {
+                ProfileEntity profile = profileRepository.findByUser(user);
+                if (profile != null && profile.getProfilePicture() != null) {
+                    profilePicture = profile.getProfilePicture();
+                }
+            }
+        } else if ("admin".equalsIgnoreCase(role)) {
+            AdminEntity admin = adminRepository.findById(id).orElse(null);
+            if (admin != null) {
+                ProfileEntity profile = profileRepository.findByAdmin(admin);
+                if (profile != null && profile.getProfilePicture() != null) {
+                    profilePicture = profile.getProfilePicture();
+                }
+            }
         }
-        return profileService.saveProfilePicture(adminId, profilePicture);
+
+        if (profilePicture == null) {
+            try {
+                Path path = Paths.get("public/default.png");
+                profilePicture = Files.readAllBytes(path);
+            } catch (IOException e) {
+                return ResponseEntity.internalServerError().build();
+            }
+        }
+
+        return ResponseEntity.ok(profilePicture);
     }
 
-   @GetMapping("/getProfilePicture/{adminId}")
-public byte[] getProfilePicture(@PathVariable int adminId) {
-    AdminEntity admin = arepo.findById(adminId).orElse(null);
-    if (admin == null) {
-        System.out.println("Admin not found with ID: " + adminId);
-        return null;
-    }
-
-    ProfileEntity profile = prepo.findByAdmin(admin);
-    if (profile != null && profile.getProfilePicture() != null) {
-        return profile.getProfilePicture();
-    } else {
+    // Delete Profile Picture
+    @PostMapping("/{role}/deleteProfilePicture/{id}")
+    public ResponseEntity<String> deleteProfilePicture(@PathVariable String role, @PathVariable int id) {
         try {
-            Path path = Paths.get("public/default.png");
-            return Files.readAllBytes(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            if ("user".equalsIgnoreCase(role)) {
+                profileService.deleteUserProfilePicture(id);
+            } else if ("admin".equalsIgnoreCase(role)) {
+                profileService.deleteAdminProfilePicture(id);
+            } else {
+                return ResponseEntity.badRequest().body("Invalid role specified");
+            }
+            
+            return ResponseEntity.ok("Profile picture deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error deleting profile picture: " + e.getMessage());
         }
     }
-}
-
-
-    // other controller methods
 }

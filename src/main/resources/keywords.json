@@ -1,0 +1,288 @@
+{
+  "CRITICALEMERGENCY": {
+    "medical emergency": {
+      "synonyms": ["health crisis", "emergency treatment"],
+      "offices": ["CIT-U Clinic - Health Services", "Safety and Security Office"]
+    },
+    "fire": {
+      "synonyms": ["blaze", "inferno", "flames"],
+      "offices": ["CIT-U Clinic - Health Services", "Safety and Security Office"]
+    },
+    "unauthorized access": {
+      "synonyms": ["trespassing", "break-in"],
+      "offices": ["Safety and Security Office"]
+    },
+    "campus security": {
+      "synonyms": ["campus police", "security alert"],
+      "offices": ["Safety and Security Office"]
+    },
+    "personal safety": {
+      "synonyms": ["self-defense", "safety concern"],
+      "offices": ["Safety and Security Office"]
+    },
+    "suspicious activity": {
+      "synonyms": ["strange behavior", "unusual activity"],
+      "offices": ["Safety and Security Office"]
+    },
+    "accident": {
+      "synonyms": ["crash", "collision", "mishap"],
+      "offices": ["CIT-U Clinic - Health Services", "Safety and Security Office"]
+    },
+    "explosion": {
+      "synonyms": ["blast", "detonation", "eruption"],
+      "offices": ["CIT-U Clinic - Health Services", "Safety and Security Office"]
+    },
+    "gas leak": {
+      "synonyms": ["gas escape", "leakage", "toxic gas"],
+      "offices": ["Safety and Security Office"]
+    },
+    "active shooter": {
+      "synonyms": ["gunman", "shooter", "armed intruder"],
+      "offices": ["Safety and Security Office"]
+    },
+    "intruder": {
+      "synonyms": ["trespasser", "unwanted person"],
+      "offices": ["Safety and Security Office"]
+    },
+    "assault": {
+      "synonyms": ["attack", "violence", "physical assault"],
+      "offices": ["Safety and Security Office", "CIT-U Clinic - Health Services"]
+    },
+    "collapse": {
+      "synonyms": ["building failure", "structural failure"],
+      "offices": ["Safety and Security Office", "CIT-U Clinic - Health Services"]
+    },
+    "emergency": {
+      "synonyms": ["urgent help", "immediate assistance"],
+      "offices": ["Safety and Security Office", "CIT-U Clinic - Health Services"]
+    },
+    "evacuation": {
+      "synonyms": ["move out", "mass exit"],
+      "offices": ["Safety and Security Office"]
+    },
+    "injury": {
+      "synonyms": ["harm", "wound", "hurt"],
+      "offices": ["CIT-U Clinic - Health Services"]
+    },
+    "flood": {
+      "synonyms": ["water surge", "water overflow"],
+      "offices": ["Safety and Security Office", "CIT-U Clinic - Health Services"]
+    },
+    "electrical hazard": {
+      "synonyms": ["electrocution risk", "electric shock"],
+      "offices": ["Safety and Security Office"]
+    },
+    "security breach": {
+      "synonyms": ["intrusion", "security violation"],
+      "offices": ["Safety and Security Office"]
+    },
+    "lockdown": {
+      "synonyms": ["isolation", "restricted movement"],
+      "offices": ["Safety and Security Office"]
+    },
+    "earthquake": {
+      "synonyms": ["tremor", "seismic activity"],
+      "offices": ["Safety and Security Office", "CIT-U Clinic - Health Services"]
+    },
+    "blood": {
+      "synonyms": ["bleeding", "hemorrhage"],
+      "offices": ["CIT-U Clinic - Health Services", "Safety and Security Office"]
+    },
+    "suicide": {
+      "synonyms": ["self-harm", "taking own life"],
+      "offices": ["CIT-U Clinic - Health Services", "CIT-U Guidance Center - Mental Health Services", "Safety and Security Office"]
+    },
+    "suicide attempt": {
+      "synonyms": ["attempted self-harm", "self-injury"],
+      "offices": ["CIT-U Clinic - Health Services", "CIT-U Guidance Center - Mental Health Services", "Safety and Security Office"]
+    },
+    "knife": {
+      "synonyms": ["blade", "sharp weapon"],
+      "offices": ["Safety and Security Office"]
+    },
+    "fall": {
+      "synonyms": ["slip", "trip", "drop"],
+      "offices": ["CIT-U Clinic - Health Services"]
+    }
+  },
+  "URGENTSITUATION": {
+    "illness": {
+      "synonyms": ["sickness", "disease", "ailment"],
+      "offices": ["CIT-U Clinic - Health Services"]
+    },
+    "minor injury": {
+      "synonyms": ["small wound", "light injury"],
+      "offices": ["CIT-U Clinic - Health Services"]
+    },
+    "peer conflict": {
+      "synonyms": ["student argument", "disagreement"],
+      "offices": ["SSO (Student Success Office) - Student Concerns"]
+    },
+    "network issues": {
+      "synonyms": ["connection problem", "slow internet", "internet outage"],
+      "offices": ["TSG (Technical Support Group) - Technical Assistance"]
+    },
+    "hardware failure": {
+      "synonyms": ["device malfunction", "broken equipment"],
+      "offices": ["TSG (Technical Support Group) - Technical Assistance"]
+    },
+    "damaged equipment": {
+      "synonyms": ["broken tool", "faulty device"],
+      "offices": ["OPC (Office of the Property Custodian)"]
+    },
+    "lost property": {
+      "synonyms": ["missing item", "misplaced belongings"],
+      "offices": ["Safety and Security Office"]
+    },
+    "payment issues": {
+      "synonyms": ["billing error", "transaction problem"],
+      "offices": ["University Registrar's Office"]
+    },
+    "academic difficulty": {
+      "synonyms": ["study problem", "grade issue"],
+      "offices": ["SSO (Student Success Office) - Student Concerns"]
+    },
+    "mental health support": {
+      "synonyms": ["psychological help", "emotional support"],
+      "offices": ["CIT-U Guidance Center - Mental Health Services"]
+    },
+    "counseling": {
+      "synonyms": ["guidance", "therapy"],
+      "offices": ["CIT-U Guidance Center - Mental Health Services"]
+    },
+    "cleaning request": {
+      "synonyms": ["janitorial service", "sanitation"],
+      "offices": ["PACUBAS - Janitorial Services"]
+    },
+    "restocking supplies": {
+      "synonyms": ["replenish items", "inventory shortage"],
+      "offices": ["PACUBAS - Janitorial Services"]
+    },
+    "pest control": {
+      "synonyms": ["extermination", "bug removal"],
+      "offices": ["PACUBAS - Janitorial Services"]
+    },
+    "water leak": {
+      "synonyms": ["pipe burst", "plumbing issue"],
+      "offices": ["OPC (Office of the Property Custodian)"]
+    },
+    "power outage": {
+      "synonyms": ["blackout", "power cut"],
+      "offices": ["OPC (Office of the Property Custodian)", "TSG (Technical Support Group) - Technical Assistance"]
+    },
+    "broken equipment": {
+      "synonyms": ["damaged tool", "nonfunctional device"],
+      "offices": ["OPC (Office of the Property Custodian)"]
+    },
+    "missing person": {
+      "synonyms": ["lost person", "absent individual"],
+      "offices": ["Safety and Security Office"]
+    },
+    "hazardous materials": {
+      "synonyms": ["dangerous substances", "toxic material"],
+      "offices": ["Safety and Security Office"]
+    },
+    "suspicious activity": {
+      "synonyms": ["strange behavior", "unusual occurrence"],
+      "offices": ["Safety and Security Office"]
+    },
+    "structural damage": {
+      "synonyms": ["building issue", "construction problem"],
+      "offices": ["OPC (Office of the Property Custodian)"]
+    },
+    "broken window": {
+      "synonyms": ["smashed glass", "window damage"],
+      "offices": ["OPC (Office of the Property Custodian)"]
+    },
+    "health concern": {
+      "synonyms": ["illness", "symptom"],
+      "offices": ["CIT-U Clinic - Health Services"]
+    },
+    "disruptive behavior": {
+      "synonyms": ["rowdy conduct", "disorderly behavior"],
+      "offices": ["Safety and Security Office"]
+    },
+    "vandalism": {
+      "synonyms": ["defacement", "graffiti damage"],
+      "offices": ["Safety and Security Office", "PACUBAS - Janitorial Services"]
+    },
+    "fallen tree": {
+      "synonyms": ["uprooted tree", "tree collapse"],
+      "offices": ["PACUBAS - Janitorial Services"]
+    },
+    "technical failure": {
+      "synonyms": ["mechanical fault", "device issue"],
+      "offices": ["TSG (Technical Support Group) - Technical Assistance"]
+    },
+    "flooded area": {
+      "synonyms": ["waterlogged", "inundated"],
+      "offices": ["OPC (Office of the Property Custodian)", "PACUBAS - Janitorial Services"]
+    },
+    "overcrowding": {
+      "synonyms": ["too many people", "crowded space"],
+      "offices": ["Safety and Security Office"]
+    },
+    "traffic obstruction": {
+      "synonyms": ["roadblock", "blocked pathway"],
+      "offices": ["Safety and Security Office"]
+    }
+  },
+  "GENERALREPORT": {
+    "festival": {
+      "synonyms": ["celebration", "carnival", "fair"],
+      "offices": ["SSO (Student Success Office) - Student Activities", "Safety and Security Office", "OPC (Office of the Property Custodian)", "CORE - Livestream, Audio/Visual Equipment", "PACUBAS - Janitorial Services"]
+    },
+    "competition": {
+      "synonyms": ["contest", "tournament", "race"],
+      "offices": ["SSO (Student Success Office) - Student Activities", "Safety and Security Office", "OPC (Office of the Property Custodian)", "CORE - Livestream, Audio/Visual Equipment", "PACUBAS - Janitorial Services"]
+    },
+    "workshop": {
+      "synonyms": ["seminar", "training", "class"],
+      "offices": ["SSO (Student Success Office) - Student Activities", "Safety and Security Office", "OPC (Office of the Property Custodian)", "CORE - Livestream, Audio/Visual Equipment", "PACUBAS - Janitorial Services"]
+    },
+    "color's day": {
+      "synonyms": ["colors day", "color celebration", "colors fest"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "founder's day": {
+      "synonyms": ["founders day", "founder's celebration", "founder's event"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "university day": {
+      "synonyms": ["university celebration", "university anniversary", "university event"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "conferment day": {
+      "synonyms": ["graduation", "degree conferment", "honors day"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "parangal": {
+      "synonyms": ["parangal night", "awards ceremony", "honors night"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "crowning": {
+      "synonyms": ["coronation", "crowning ceremony"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "mental health awareness month": {
+      "synonyms": ["mental health month", "mental wellness month"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "intramurals": {
+      "synonyms": ["sports fest", "sports event", "intrams"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "acquaintance": {
+      "synonyms": ["acquaintance party", "social gathering"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "commencement rites": {
+      "synonyms": ["graduation ceremony", "commencement"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    },
+    "graduation day": {
+      "synonyms": ["graduation", "grad day", "grad ceremony"],
+      "offices": ["SSO", "Safety and Security Office", "OPC", "CORE", "PACUBAS"]
+    }
+  }
+}
