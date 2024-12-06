@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import com.example.admin_backend.Service.ProfileService;
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/profile")
 public class ProfileController {
+    
     @Autowired
     private ProfileService profileService;
     
@@ -85,9 +87,10 @@ public class ProfileController {
             }
         }
 
+        // If no profile picture found, return default image from static resources
         if (profilePicture == null) {
             try {
-                Path path = Paths.get("public/default.png");
+                Path path = Paths.get("src/main/resources/static/default.png");  // Default image path
                 profilePicture = Files.readAllBytes(path);
             } catch (IOException e) {
                 return ResponseEntity.internalServerError().build();
