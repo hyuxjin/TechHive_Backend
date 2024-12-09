@@ -71,6 +71,15 @@ private LocalDateTime submittedAt;
     @Column(name = "isFlagged")
     private Boolean isFlagged;
 
+    @Column(name = "status_updated_at")
+@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+private LocalDateTime statusUpdatedAt;
+
+@Column(name = "resolved_at")
+@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+private LocalDateTime resolvedAt;
+
+
     // Constructor
     public ReportEntity() {}
 
@@ -97,6 +106,22 @@ private LocalDateTime submittedAt;
     }
 
     // Getters and Setters
+public LocalDateTime getStatusUpdatedAt() {
+    return statusUpdatedAt;
+}
+
+public void setStatusUpdatedAt(LocalDateTime statusUpdatedAt) {
+    this.statusUpdatedAt = statusUpdatedAt;
+}
+
+public LocalDateTime getResolvedAt() {
+    return resolvedAt;
+}
+
+public void setResolvedAt(LocalDateTime resolvedAt) {
+    this.resolvedAt = resolvedAt;
+}
+
     public int getReportId() {
         return reportId;
     }

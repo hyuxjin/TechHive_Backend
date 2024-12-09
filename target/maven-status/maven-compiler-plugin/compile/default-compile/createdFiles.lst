@@ -35,6 +35,7 @@ com/example/admin_backend/Service/UserService.class
 com/example/admin_backend/Repository/SuperUserRepository.class
 com/example/admin_backend/Controller/BuildingController.class
 com/example/admin_backend/Repository/KeywordRepository.class
+com/example/admin_backend/dto/ReportDTO.class
 com/example/admin_backend/Service/ProfileService.class
 com/example/admin_backend/dto/UserDTO.class
 com/example/admin_backend/Entity/BuildingEntity.class

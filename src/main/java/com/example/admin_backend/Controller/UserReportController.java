@@ -154,9 +154,6 @@ public void init() {
                 .body(Map.of("error", "Failed to fetch resolved reports: " + e.getMessage()));
         }
     }
-<<<<<<< Updated upstream
-@PutMapping("/{id}/flag")
-=======
 
     @PutMapping("/{reportId}/status")
     public ResponseEntity<?> updateReportStatus(
@@ -190,7 +187,6 @@ public void init() {
     }
 
     @PutMapping("/{id}/flag")
->>>>>>> Stashed changes
     public ResponseEntity<?> updateFlagStatus(@PathVariable int id, @RequestBody Map<String, Boolean> payload) {
         Boolean isFlagged = payload.get("isFlagged");
         ReportEntity updatedReport = userReportService.updateFlagStatus(id, isFlagged);
@@ -340,29 +336,6 @@ public void init() {
         }
     }
 
-<<<<<<< Updated upstream
-    @PutMapping("/{reportId}/status")
-    public ResponseEntity<?> updateReportStatus(
-            @PathVariable int reportId,
-            @RequestBody Map<String, String> statusUpdate) {
-        try {
-            System.out.println("Updating status for report " + reportId + " to " + statusUpdate.get("status"));
-            
-            ReportEntity report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new RuntimeException("Report not found"));
-            
-            report.setStatus(ReportStatus.valueOf(statusUpdate.get("status")));
-            ReportEntity updatedReport = reportRepository.save(report);
-            
-            System.out.println("Status updated successfully");
-            return ResponseEntity.ok(updatedReport);
-        } catch (Exception e) {
-            System.err.println("Error updating status: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to update report status: " + e.getMessage()));
-        }
-    }
-=======
     @GetMapping("/byPost/{postId}")
 public ResponseEntity<?> getReportByPostId(@PathVariable int postId) {
     try {
@@ -374,7 +347,6 @@ public ResponseEntity<?> getReportByPostId(@PathVariable int postId) {
             .body(Map.of("error", "Report not found for post ID: " + postId));
     }
 }
->>>>>>> Stashed changes
 
    private String saveImage(MultipartFile image) throws IOException {
     if (image == null || image.isEmpty()) {

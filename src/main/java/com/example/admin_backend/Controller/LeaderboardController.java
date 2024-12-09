@@ -1,59 +1,98 @@
 package com.example.admin_backend.Controller;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import com.example.admin_backend.Entity.LeaderboardEntity;
 import com.example.admin_backend.Service.LeaderboardService;
 
 @RestController
 @RequestMapping("/api/leaderboard")
+@CrossOrigin(origins = "http://localhost:3000")
 public class LeaderboardController {
-
     @Autowired
     private LeaderboardService leaderboardService;
 
-    // Get the leaderboard rankings (ordered by points)
     @GetMapping("/rankings")
-    public ResponseEntity<List<LeaderboardEntity>> getLeaderboardRankings() {
-        List<LeaderboardEntity> rankings = leaderboardService.getLeaderboardRankings();
-        return ResponseEntity.ok(rankings);
+    public ResponseEntity<?> getLeaderboardRankings() {
+        try {
+            System.out.println("Received request for leaderboard rankings");
+            List<LeaderboardEntity> rankings = leaderboardService.getLeaderboardRankings();
+            return ResponseEntity.ok(rankings);
+        } catch (Exception e) {
+            System.err.println("Error in getLeaderboardRankings: " + e.getMessage());
+            return ResponseEntity.status(500)
+                .body("Failed to fetch leaderboard rankings: " + e.getMessage());
+        }
     }
 
-    // Get the leaderboard entry for a specific user
     @GetMapping("/user/{userId}")
-    public ResponseEntity<LeaderboardEntity> getLeaderboardEntryByUserId(@PathVariable int userId) {
-        LeaderboardEntity leaderboardEntry = leaderboardService.getLeaderboardEntryByUserId(userId);
-        return ResponseEntity.ok(leaderboardEntry);
+    public ResponseEntity<?> getLeaderboardEntryByUserId(@PathVariable int userId) {
+        try {
+            System.out.println("Received request for user " + userId + "'s leaderboard entry");
+            LeaderboardEntity entry = leaderboardService.getLeaderboardEntryByUserId(userId);
+            return ResponseEntity.ok(entry);
+        } catch (Exception e) {
+            System.err.println("Error in getLeaderboardEntryByUserId: " + e.getMessage());
+            return ResponseEntity.status(500)
+                .body("Failed to fetch leaderboard entry: " + e.getMessage());
+        }
     }
 
-    // Add points to a user's leaderboard entry
     @PostMapping("/addPoints")
-    public ResponseEntity<LeaderboardEntity> addPointsToUser(@RequestParam int userId, @RequestParam int points) {
-        LeaderboardEntity leaderboardEntry = leaderboardService.addPoints(userId, points);
-        return ResponseEntity.ok(leaderboardEntry);
+    public ResponseEntity<?> addPointsToUser(
+            @RequestParam int userId,
+            @RequestParam int points) {
+        try {
+            System.out.println("Received request to add " + points + " points to user " + userId);
+            LeaderboardEntity result = leaderboardService.addPoints(userId, points);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("Error in addPointsToUser: " + e.getMessage());
+            return ResponseEntity.status(500)
+                .body("Failed to add points: " + e.getMessage());
+        }
     }
 
-    // Subtract points from a user's leaderboard entry
     @PostMapping("/subtractPoints")
-    public ResponseEntity<LeaderboardEntity> subtractPointsFromUser(@RequestParam int userId, @RequestParam int points) {
-        LeaderboardEntity leaderboardEntry = leaderboardService.subtractPoints(userId, points);
-        return ResponseEntity.ok(leaderboardEntry);
+    public ResponseEntity<?> subtractPointsFromUser(
+            @RequestParam int userId,
+            @RequestParam int points) {
+        try {
+            System.out.println("Received request to subtract " + points + " points from user " + userId);
+            LeaderboardEntity result = leaderboardService.subtractPoints(userId, points);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("Error in subtractPointsFromUser: " + e.getMessage());
+            return ResponseEntity.status(500)
+                .body("Failed to subtract points: " + e.getMessage());
+        }
     }
 
-    // Endpoint to update leaderboard ranks
     @PutMapping("/updateRanks")
-    public ResponseEntity<String> updateLeaderboardRanks() {
-        leaderboardService.updateLeaderboardRanks();
-        return ResponseEntity.ok("Leaderboard ranks updated successfully.");
+    public ResponseEntity<?> updateLeaderboardRanks() {
+        try {
+            System.out.println("Received request to update leaderboard ranks");
+            leaderboardService.updateLeaderboardRanks();
+            return ResponseEntity.ok("Leaderboard ranks updated successfully");
+        } catch (Exception e) {
+            System.err.println("Error in updateLeaderboardRanks: " + e.getMessage());
+            return ResponseEntity.status(500)
+                .body("Failed to update ranks: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/badge/{points}")
+    public ResponseEntity<?> getBadge(@PathVariable int points) {
+        try {
+            System.out.println("Received request for badge calculation for " + points + " points");
+            String badge = leaderboardService.getBadge(points);
+            return ResponseEntity.ok(badge);
+        } catch (Exception e) {
+            System.err.println("Error in getBadge: " + e.getMessage());
+            return ResponseEntity.status(500)
+                .body("Failed to get badge: " + e.getMessage());
+        }
     }
 }

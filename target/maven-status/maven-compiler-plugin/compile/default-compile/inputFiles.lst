@@ -22,6 +22,7 @@
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/config/MailConfig.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/UserRepository.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/OfficeService.java
+/Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/dto/ReportDTO.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Repository/OfficeRepository.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Entity/EntryEntity.java
 /Users/richardmolina/Documents/GitHub/ADMIN_TECHHIVE_BACKEND/src/main/java/com/example/admin_backend/Service/CommentService.java

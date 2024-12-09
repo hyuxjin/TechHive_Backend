@@ -8,12 +8,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.example.admin_backend.Entity.PostEntity;
 import com.example.admin_backend.Entity.CommentEntity;
 import com.example.admin_backend.Service.PostService;
-<<<<<<< Updated upstream
-
-=======
 import org.springframework.http.MediaType;
 import java.time.LocalDateTime;
->>>>>>> Stashed changes
 import java.util.List;
 import java.util.Map;
 import java.sql.SQLException;
@@ -36,19 +32,11 @@ public class PostController {
             List<PostEntity> posts = postService.getAllPosts();
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-<<<<<<< Updated upstream
-    // Get visible posts only
-    @GetMapping("/visible")
-    public ResponseEntity<List<PostEntity>> getVisiblePosts() {
-        try {
-            List<PostEntity> posts = postService.getAllVisiblePosts();
-            return ResponseEntity.ok(posts);
-        } catch (Exception e) {
-=======
     // Get visible posts only with report status
     @GetMapping("/visible")
     public ResponseEntity<List<PostEntity>> getVisiblePosts() {
@@ -126,21 +114,10 @@ public class PostController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             e.printStackTrace();
->>>>>>> Stashed changes
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-<<<<<<< Updated upstream
-    // Get post by ID
-    @GetMapping("/{postId}")
-    public ResponseEntity<PostEntity> getPostById(@PathVariable int postId) {
-        try {
-            return postService.getPostById(postId)
-                    .map(ResponseEntity::ok)
-                    .orElseGet(() -> ResponseEntity.notFound().build());
-        } catch (Exception e) {
-=======
     // Handle dislike on post
     @PostMapping("/{postId}/dislike")
     public ResponseEntity<PostEntity> handleDislike(
@@ -157,7 +134,6 @@ public class PostController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             e.printStackTrace();
->>>>>>> Stashed changes
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -175,8 +151,10 @@ public class PostController {
             PostEntity newPost = postService.createPost(post);
             return ResponseEntity.status(HttpStatus.CREATED).body(newPost);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -190,8 +168,10 @@ public class PostController {
             PostEntity updatedPost = postService.updatePost(postId, postDetails);
             return ResponseEntity.ok(updatedPost);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
@@ -209,6 +189,7 @@ public class PostController {
             PostEntity updatedPost = postService.updateVisibility(postId, isVisible);
             return ResponseEntity.ok(updatedPost);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
@@ -220,6 +201,7 @@ public class PostController {
             postService.softDeletePost(postId);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
@@ -228,40 +210,6 @@ public class PostController {
     @GetMapping("/{postId}/status")
     public ResponseEntity<?> getPostStatus(@PathVariable int postId) {
         try {
-<<<<<<< Updated upstream
-            // Validation
-            if (userRole == null || userRole.trim().isEmpty()) {
-                return ResponseEntity.badRequest().build();
-            }
-
-            PostEntity updatedPost = postService.toggleLike(postId, userId, userRole.toUpperCase());
-            return ResponseEntity.ok(updatedPost);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // Toggle dislike on post
-    @PostMapping("/{postId}/dislike")
-    public ResponseEntity<PostEntity> toggleDislike(
-            @PathVariable int postId,
-            @RequestParam int userId,
-            @RequestParam String userRole) {
-        try {
-            // Validation
-            if (userRole == null || userRole.trim().isEmpty()) {
-                return ResponseEntity.badRequest().build();
-            }
-
-            PostEntity updatedPost = postService.toggleDislike(postId, userId, userRole.toUpperCase());
-            return ResponseEntity.ok(updatedPost);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-=======
             String query = "SELECT p.is_submitted_report, r.status " +
                     "FROM tblpost p " +
                     "LEFT JOIN tblreport r ON p.report_id = r.report_id " +
@@ -273,7 +221,6 @@ public class PostController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to fetch post status"));
->>>>>>> Stashed changes
         }
     }
 
@@ -284,6 +231,7 @@ public class PostController {
             List<CommentEntity> comments = postService.getCommentsByPostId(postId);
             return ResponseEntity.ok(comments);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
@@ -300,21 +248,35 @@ public class PostController {
             CommentEntity newComment = postService.addComment(comment, postId);
             return ResponseEntity.status(HttpStatus.CREATED).body(newComment);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
 
-    // Error handling for unsupported operations
-    @ExceptionHandler(UnsupportedOperationException.class)
-    public ResponseEntity<?> handleUnsupportedOperation(UnsupportedOperationException e) {
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+    // Get all report posts
+    @GetMapping("/reports")
+    public ResponseEntity<List<PostEntity>> getAllReportPosts() {
+        try {
+            List<PostEntity> reportPosts = postService.getAllReportPosts();
+            return ResponseEntity.ok(reportPosts);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    // Generic error handling
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleGenericError(Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    // Get report posts by status
+    @GetMapping("/reports/status/{status}")
+    public ResponseEntity<List<PostEntity>> getReportPostsByStatus(@PathVariable String status) {
+        try {
+            List<PostEntity> reportPosts = postService.getReportPostsByStatus(status);
+            return ResponseEntity.ok(reportPosts);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
