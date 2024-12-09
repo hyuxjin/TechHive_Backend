@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +46,22 @@ public class PostService {
 
     // Get only visible posts
     public List<PostEntity> getAllVisiblePosts() {
+<<<<<<< Updated upstream
         return postRepository.findByIsDeletedFalseAndVisibleTrue();
+=======
+        try {
+            System.out.println("PostService: Starting to fetch visible posts");
+            List<PostEntity> posts = postRepository.findByIsDeletedFalseAndIsVisibleTrue();
+            System.out.println("PostService: SQL query executed successfully");
+            System.out.println("PostService: Number of posts found: " + posts.size());
+            posts.forEach(post -> System.out.println("Post ID: " + post.getPostId() + ", isVisible: " + post.isVisible()));
+            return posts;
+        } catch (Exception e) {
+            System.err.println("PostService Error in getAllVisiblePosts: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching visible posts", e);
+        }
+>>>>>>> Stashed changes
     }
 
     // Get post by ID
@@ -169,6 +186,7 @@ public class PostService {
         }
     }
 
+<<<<<<< Updated upstream
     // Like/Dislike functionality
     @Transactional
     public PostEntity toggleLike(int postId, int userId, String userRole) {
@@ -262,6 +280,228 @@ public class PostService {
             if ("USER".equalsIgnoreCase(post.getUserRole()) && post.getDislikes() >= 50) {
                 softDeletePost(postId);
                 return post;
+=======
+    // Post visibility
+    public PostEntity updateVisibility(int postId, boolean newVisibility) {
+        try {
+            System.out.println("Updating visibility for post ID: " + postId);
+            PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+            post.setVisible(newVisibility);
+            post.setLastModifiedAt(LocalDateTime.now());
+            PostEntity updatedPost = postRepository.save(post);
+            System.out.println("Visibility updated successfully");
+            return updatedPost;
+        } catch (Exception e) {
+            System.err.println("Error updating visibility: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    // Soft delete
+    @Transactional
+    public void softDeletePost(int postId) {
+        try {
+            System.out.println("Soft deleting post ID: " + postId);
+            PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+            post.setDeleted(true);
+            post.setLastModifiedAt(LocalDateTime.now());
+            postRepository.save(post);
+            System.out.println("Post soft deleted successfully");
+        } catch (Exception e) {
+            System.err.println("Error soft deleting post: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    // Comments
+    public List<CommentEntity> getCommentsByPostId(int postId) {
+        try {
+            System.out.println("Fetching comments for post ID: " + postId);
+            List<CommentEntity> comments = commentRepository.findByPostIdAndIsDeletedFalse(postId);
+            System.out.println("Found " + comments.size() + " comments");
+            return comments;
+        } catch (Exception e) {
+            System.err.println("Error fetching comments: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    public CommentEntity addComment(CommentEntity comment, int postId) {
+        try {
+            System.out.println("Adding comment to post ID: " + postId);
+            comment.setPostId(postId);
+            CommentEntity savedComment = commentRepository.save(comment);
+            System.out.println("Comment added successfully");
+            return savedComment;
+        } catch (Exception e) {
+            System.err.println("Error adding comment: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    @Transactional
+    public PostEntity handleLike(Integer postId, Integer userId, String userRole) {
+        PostEntity post = postRepository.findById(postId)
+            .orElseThrow(() -> new NoSuchElementException("Post not found"));
+
+        Set<Integer> likedBy = post.getLikedBy();
+        if (likedBy == null) {
+            likedBy = new HashSet<>();
+            post.setLikedBy(likedBy);
+        }
+
+        // Check if user has already liked the post - if so, remove the like
+        if (likedBy.contains(userId)) {
+            // Remove like
+            likedBy.remove(userId);
+            post.setLikes(post.getLikes() - 1);
+
+            // Remove points if it's a user's post
+            if (post.getUserId() != null) {
+                if ("ADMIN".equals(userRole)) {
+                    leaderboardService.subtractPoints(post.getUserId(), 3);
+                    UserEntity user = userRepository.findById(post.getUserId())
+                        .orElseThrow(() -> new NoSuchElementException("User not found"));
+                    user.subtractPoints(3);
+                    userRepository.save(user);
+                } else if ("SUPERUSER".equals(userRole)) {
+                    leaderboardService.subtractPoints(post.getUserId(), 5);
+                    UserEntity user = userRepository.findById(post.getUserId())
+                        .orElseThrow(() -> new NoSuchElementException("User not found"));
+                    user.subtractPoints(5);
+                    userRepository.save(user);
+                }
+            }
+        } else {
+            // Add like
+            likedBy.add(userId);
+            post.setLikes(post.getLikes() + 1);
+
+            // Remove dislike if exists
+            Set<Integer> dislikedBy = post.getDislikedBy();
+            if (dislikedBy != null && dislikedBy.contains(userId)) {
+                dislikedBy.remove(userId);
+                post.setDislikes(post.getDislikes() - 1);
+
+                // Add back points that were removed by dislike
+                if (post.getUserId() != null) {
+                    if ("ADMIN".equals(userRole)) {
+                        leaderboardService.addPoints(post.getUserId(), 3);
+                        UserEntity user = userRepository.findById(post.getUserId())
+                            .orElseThrow(() -> new NoSuchElementException("User not found"));
+                        user.addPoints(3);
+                        userRepository.save(user);
+                    } else if ("SUPERUSER".equals(userRole)) {
+                        leaderboardService.addPoints(post.getUserId(), 5);
+                        UserEntity user = userRepository.findById(post.getUserId())
+                            .orElseThrow(() -> new NoSuchElementException("User not found"));
+                        user.addPoints(5);
+                        userRepository.save(user);
+                    }
+                }
+            }
+
+            // Add points for new like if it's a user's post
+            if (post.getUserId() != null) {
+                if ("ADMIN".equals(userRole)) {
+                    leaderboardService.addPoints(post.getUserId(), 3);
+                    UserEntity user = userRepository.findById(post.getUserId())
+                        .orElseThrow(() -> new NoSuchElementException("User not found"));
+                    user.addPoints(3);
+                    userRepository.save(user);
+                } else if ("SUPERUSER".equals(userRole)) {
+                    leaderboardService.addPoints(post.getUserId(), 5);
+                    UserEntity user = userRepository.findById(post.getUserId())
+                        .orElseThrow(() -> new NoSuchElementException("User not found"));
+                    user.addPoints(5);
+                    userRepository.save(user);
+                }
+            }
+        }
+
+        return postRepository.save(post);
+    }
+
+    @Transactional
+    public PostEntity handleDislike(Integer postId, Integer userId, String userRole) {
+        PostEntity post = postRepository.findById(postId)
+            .orElseThrow(() -> new NoSuchElementException("Post not found"));
+
+        Set<Integer> dislikedBy = post.getDislikedBy();
+        if (dislikedBy == null) {
+            dislikedBy = new HashSet<>();
+            post.setDislikedBy(dislikedBy);
+        }
+
+        // Check if user has already disliked the post - if so, remove the dislike
+        if (dislikedBy.contains(userId)) {
+            // Remove dislike
+            dislikedBy.remove(userId);
+            post.setDislikes(post.getDislikes() - 1);
+
+            // Add back points if it's a user's post
+            if (post.getUserId() != null) {
+                if ("ADMIN".equals(userRole)) {
+                    leaderboardService.addPoints(post.getUserId(), 3);
+                    UserEntity user = userRepository.findById(post.getUserId())
+                        .orElseThrow(() -> new NoSuchElementException("User not found"));
+                    user.addPoints(3);
+                    userRepository.save(user);
+                } else if ("SUPERUSER".equals(userRole)) {
+                    leaderboardService.addPoints(post.getUserId(), 5);
+                    UserEntity user = userRepository.findById(post.getUserId())
+                        .orElseThrow(() -> new NoSuchElementException("User not found"));
+                    user.addPoints(5);
+                    userRepository.save(user);
+                }
+            }
+        } else {
+            // Add dislike
+            dislikedBy.add(userId);
+            post.setDislikes(post.getDislikes() + 1);
+
+            // Remove like if exists
+            Set<Integer> likedBy = post.getLikedBy();
+            if (likedBy != null && likedBy.contains(userId)) {
+                likedBy.remove(userId);
+                post.setLikes(post.getLikes() - 1);
+
+                // Remove points from previous like
+                if (post.getUserId() != null) {
+                    if ("ADMIN".equals(userRole)) {
+                        leaderboardService.subtractPoints(post.getUserId(), 3);
+                        UserEntity user = userRepository.findById(post.getUserId())
+                            .orElseThrow(() -> new NoSuchElementException("User not found"));
+                        user.subtractPoints(3);
+                        userRepository.save(user);
+                    } else if ("SUPERUSER".equals(userRole)) {
+                        leaderboardService.subtractPoints(post.getUserId(), 5);
+                        UserEntity user = userRepository.findById(post.getUserId())
+                            .orElseThrow(() -> new NoSuchElementException("User not found"));
+                        user.subtractPoints(5);
+                        userRepository.save(user);
+                    }
+                }
+            }
+
+            // Subtract points for new dislike if it's a user's post
+            if (post.getUserId() != null) {
+                if ("ADMIN".equals(userRole)) {
+                    leaderboardService.subtractPoints(post.getUserId(), 3);
+                    UserEntity user = userRepository.findById(post.getUserId())
+                        .orElseThrow(() -> new NoSuchElementException("User not found"));
+                    user.subtractPoints(3);
+                    userRepository.save(user);
+                } else if ("SUPERUSER".equals(userRole)) {
+                    leaderboardService.subtractPoints(post.getUserId(), 5);
+                    UserEntity user = userRepository.findById(post.getUserId())
+                        .orElseThrow(() -> new NoSuchElementException("User not found"));
+                    user.subtractPoints(5);
+                    userRepository.save(user);
+                }
+>>>>>>> Stashed changes
             }
         }
 

@@ -26,6 +26,46 @@ public class UserService {
     @Autowired
     private EmailVerificationService emailVerificationService; // Delegate to this service
 
+    @Transactional
+    public void handleAdminLike(Integer userId) {
+        UserEntity user = userRepository.findById(userId)
+            .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + userId));
+        user.addPoints(3); // Add 3 points for admin like
+        userRepository.save(user);
+        // Update leaderboard
+        leaderboardService.addPoints(userId, 3);
+    }
+
+    @Transactional
+    public void handleAdminDislike(Integer userId) {
+        UserEntity user = userRepository.findById(userId)
+            .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + userId));
+        user.subtractPoints(3); // Subtract 3 points for admin dislike
+        userRepository.save(user);
+        // Update leaderboard
+        leaderboardService.subtractPoints(userId, 3);
+    }
+
+    @Transactional
+    public void removeAdminLike(Integer userId) {
+        UserEntity user = userRepository.findById(userId)
+            .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + userId));
+        user.subtractPoints(3); // Remove the 3 points that were added
+        userRepository.save(user);
+        // Update leaderboard
+        leaderboardService.subtractPoints(userId, 3);
+    }
+
+     @Transactional
+    public void removeAdminDislike(Integer userId) {
+        UserEntity user = userRepository.findById(userId)
+            .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + userId));
+        user.addPoints(3); // Add back the 3 points that were subtracted
+        userRepository.save(user);
+        // Update leaderboard
+        leaderboardService.addPoints(userId, 3);
+    }
+
      @Transactional
     public UserEntity updateUserStatus(String idNumber, boolean status) {
         UserEntity user = userRepository.findByIdNumber(idNumber);

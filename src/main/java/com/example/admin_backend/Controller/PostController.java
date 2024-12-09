@@ -4,20 +4,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.jdbc.core.JdbcTemplate;
 import com.example.admin_backend.Entity.PostEntity;
 import com.example.admin_backend.Entity.CommentEntity;
 import com.example.admin_backend.Service.PostService;
+<<<<<<< Updated upstream
 
+=======
+import org.springframework.http.MediaType;
+import java.time.LocalDateTime;
+>>>>>>> Stashed changes
 import java.util.List;
 import java.util.Map;
+import java.sql.SQLException;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/posts")
 @CrossOrigin(origins = "http://localhost:3000")
 public class PostController {
-
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     // Get all posts
     @GetMapping
@@ -30,6 +40,7 @@ public class PostController {
         }
     }
 
+<<<<<<< Updated upstream
     // Get visible posts only
     @GetMapping("/visible")
     public ResponseEntity<List<PostEntity>> getVisiblePosts() {
@@ -37,10 +48,90 @@ public class PostController {
             List<PostEntity> posts = postService.getAllVisiblePosts();
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
+=======
+    // Get visible posts only with report status
+    @GetMapping("/visible")
+    public ResponseEntity<List<PostEntity>> getVisiblePosts() {
+        try {
+            System.out.println("==== START: getVisiblePosts ====");
+            String query = "SELECT p.*, r.status as report_status " +
+                    "FROM tblpost p " +
+                    "LEFT JOIN tblreport r ON p.reportid = r.reportId " +
+                    "WHERE p.is_visible = true " +
+                    "ORDER BY p.timestamp DESC";
+
+            List<PostEntity> posts = jdbcTemplate.query(query, (rs, rowNum) -> {
+                PostEntity post = new PostEntity();
+                post.setPostId(rs.getInt("post_id"));
+                post.setContent(rs.getString("content"));
+                post.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
+                post.setAdminId(rs.getInt("admin_id"));
+                post.setSuperUserId(rs.getInt("superuser_id"));
+                post.setImage(rs.getString("image"));
+                post.setUserRole(rs.getString("user_role"));
+                post.setFullname(rs.getString("fullname"));
+                post.setIdnumber(rs.getString("idnumber"));
+                post.setLikes(rs.getInt("likes"));
+                post.setDislikes(rs.getInt("dislikes"));
+                post.setIsVisible(rs.getBoolean("is_visible"));
+                post.setIsSubmittedReport(rs.getBoolean("is_submitted_report"));
+                post.setReportId(rs.getInt("reportid"));
+
+                if (post.getIsSubmittedReport()) {
+                    try {
+                        String reportStatus = rs.getString("report_status");
+                        if (reportStatus != null) {
+                            System.out.println("Found report status for post " + post.getPostId() + ": " + reportStatus);
+                            post.setStatus(reportStatus);
+                        } else {
+                            System.out.println("No report status found for post " + post.getPostId() + ", defaulting to PENDING");
+                            post.setStatus("PENDING");
+                        }
+                    } catch (SQLException e) {
+                        System.out.println("Error getting report status for post " + post.getPostId() + ", defaulting to PENDING");
+                        post.setStatus("PENDING");
+                    }
+                }
+                return post;
+            });
+
+            posts.forEach(post -> {
+                if (post.getIsSubmittedReport()) {
+                    System.out.println("Report post ID: " + post.getPostId() + ", Status: " + post.getStatus());
+                }
+            });
+            return ResponseEntity.ok(posts);
+        } catch (Exception e) {
+            System.err.println("==== ERROR in PostController.getVisiblePosts ====");
+            System.err.println("Error type: " + e.getClass().getName());
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    // Handle like on post
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<PostEntity> handleLike(
+            @PathVariable Integer postId,
+            @RequestParam Integer userId,
+            @RequestParam String userRole) {
+        try {
+            if (userRole == null || userRole.trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            PostEntity updatedPost = postService.handleLike(postId, userId, userRole.toUpperCase());
+            return ResponseEntity.ok(updatedPost);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+>>>>>>> Stashed changes
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
+<<<<<<< Updated upstream
     // Get post by ID
     @GetMapping("/{postId}")
     public ResponseEntity<PostEntity> getPostById(@PathVariable int postId) {
@@ -49,6 +140,24 @@ public class PostController {
                     .map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (Exception e) {
+=======
+    // Handle dislike on post
+    @PostMapping("/{postId}/dislike")
+    public ResponseEntity<PostEntity> handleDislike(
+            @PathVariable Integer postId,
+            @RequestParam Integer userId,
+            @RequestParam String userRole) {
+        try {
+            if (userRole == null || userRole.trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            PostEntity updatedPost = postService.handleDislike(postId, userId, userRole.toUpperCase());
+            return ResponseEntity.ok(updatedPost);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+>>>>>>> Stashed changes
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -57,14 +166,12 @@ public class PostController {
     @PostMapping("/add")
     public ResponseEntity<PostEntity> addPost(@RequestBody PostEntity post) {
         try {
-            // Validation checks
             if (post.getUserRole() == null || post.getUserRole().trim().isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
             if (post.getContent() == null && post.getImage() == null) {
                 return ResponseEntity.badRequest().build();
             }
-
             PostEntity newPost = postService.createPost(post);
             return ResponseEntity.status(HttpStatus.CREATED).body(newPost);
         } catch (IllegalArgumentException e) {
@@ -99,7 +206,6 @@ public class PostController {
             if (isVisible == null) {
                 return ResponseEntity.badRequest().build();
             }
-
             PostEntity updatedPost = postService.updateVisibility(postId, isVisible);
             return ResponseEntity.ok(updatedPost);
         } catch (RuntimeException e) {
@@ -118,13 +224,11 @@ public class PostController {
         }
     }
 
-    // Toggle like on post
-    @PostMapping("/{postId}/like")
-    public ResponseEntity<PostEntity> toggleLike(
-            @PathVariable int postId,
-            @RequestParam int userId,
-            @RequestParam String userRole) {
+    // Get post status
+    @GetMapping("/{postId}/status")
+    public ResponseEntity<?> getPostStatus(@PathVariable int postId) {
         try {
+<<<<<<< Updated upstream
             // Validation
             if (userRole == null || userRole.trim().isEmpty()) {
                 return ResponseEntity.badRequest().build();
@@ -157,6 +261,19 @@ public class PostController {
             return ResponseEntity.badRequest().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+=======
+            String query = "SELECT p.is_submitted_report, r.status " +
+                    "FROM tblpost p " +
+                    "LEFT JOIN tblreport r ON p.report_id = r.report_id " +
+                    "WHERE p.post_id = ?";
+            Map<String, Object> result = jdbcTemplate.queryForMap(query, postId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("Error fetching status for post " + postId);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to fetch post status"));
+>>>>>>> Stashed changes
         }
     }
 
@@ -177,11 +294,9 @@ public class PostController {
             @PathVariable int postId,
             @RequestBody CommentEntity comment) {
         try {
-            // Validation
             if (comment.getContent() == null || comment.getContent().trim().isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
-
             CommentEntity newComment = postService.addComment(comment, postId);
             return ResponseEntity.status(HttpStatus.CREATED).body(newComment);
         } catch (IllegalArgumentException e) {

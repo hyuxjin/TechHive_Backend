@@ -12,14 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.example.admin_backend.Entity.ReportStatus;
+import jakarta.annotation.PostConstruct;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/user/reports")
@@ -42,19 +40,33 @@ public class UserReportController {
         this.objectMapper = objectMapper;
     }
 
+    @PostConstruct
+public void init() {
+    String uploadDir = System.getProperty("user.home") + 
+        "/Documents/GitHub/ADMIN_TECHHIVE_FRONTEND/public/Upload_report";
+    File directory = new File(uploadDir);
+    if (!directory.exists()) {
+        boolean created = directory.mkdirs();
+        if (!created) {
+            throw new RuntimeException("Failed to create upload directory: " + uploadDir);
+        }
+    }
+    if (!directory.canWrite()) {
+        throw new RuntimeException("Upload directory is not writable: " + uploadDir);
+    }
+}
+
     @GetMapping
     public ResponseEntity<?> getAllReports() {
         try {
             System.out.println("\n=== DEBUG: GET ALL REPORTS - Start ===");
             List<ReportEntity> reports = reportRepository.findAllOrderBySubmittedAtDesc();
             
-            // Debug logging for the reports list
             System.out.println("Reports object type: " + reports.getClass().getName());
             System.out.println("Number of reports: " + reports.size());
             System.out.println("Is reports null? " + (reports == null));
             System.out.println("Is reports empty? " + reports.isEmpty());
             
-            // Log each report
             reports.forEach(report -> {
                 System.out.println("\nReport Details:");
                 System.out.println("ID: " + report.getReportId());
@@ -63,7 +75,6 @@ public class UserReportController {
                 System.out.println("Description: " + report.getDescription());
             });
 
-            // Debug log the JSON that will be sent
             String jsonResponse = objectMapper.writeValueAsString(reports);
             System.out.println("\nJSON Response to be sent:");
             System.out.println(jsonResponse);
@@ -75,14 +86,9 @@ public class UserReportController {
                     .body(new ArrayList<>());
             }
 
-            ResponseEntity<?> response = ResponseEntity.ok()
+            return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(reports.size()))
                 .body(reports);
-
-            System.out.println("\nResponse body type: " + response.getBody().getClass().getName());
-            System.out.println("=== DEBUG: GET ALL REPORTS - End ===\n");
-
-            return response;
 
         } catch (Exception e) {
             System.err.println("\n=== ERROR in getAllReports ===");
@@ -119,7 +125,6 @@ public class UserReportController {
     public ResponseEntity<?> getInProgressReports() {
         try {
             List<ReportEntity> reports = reportRepository.findAllInProgressReports();
-            
             System.out.println("\n=== Fetching In-Progress Reports ===");
             System.out.println("Total in-progress reports found: " + reports.size());
             
@@ -137,7 +142,6 @@ public class UserReportController {
     public ResponseEntity<?> getResolvedReports() {
         try {
             List<ReportEntity> reports = reportRepository.findAllResolvedReports();
-            
             System.out.println("\n=== Fetching Resolved Reports ===");
             System.out.println("Total resolved reports found: " + reports.size());
             
@@ -150,7 +154,43 @@ public class UserReportController {
                 .body(Map.of("error", "Failed to fetch resolved reports: " + e.getMessage()));
         }
     }
+<<<<<<< Updated upstream
 @PutMapping("/{id}/flag")
+=======
+
+    @PutMapping("/{reportId}/status")
+    public ResponseEntity<?> updateReportStatus(
+            @PathVariable int reportId,
+            @RequestBody Map<String, String> statusUpdate) {
+        try {
+            System.out.println("Updating status for report " + reportId + " to " + statusUpdate.get("status"));
+            
+            ReportEntity report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
+            
+            ReportStatus newStatus = ReportStatus.valueOf(statusUpdate.get("status"));
+            report.setStatus(newStatus);
+            
+            LocalDateTime now = LocalDateTime.now();
+            report.setStatusUpdatedAt(now);
+            
+            if (newStatus == ReportStatus.RESOLVED) {
+                report.setResolvedAt(now);
+            }
+            
+            ReportEntity updatedReport = reportRepository.save(report);
+            System.out.println("Status updated successfully");
+            
+            return ResponseEntity.ok(updatedReport);
+        } catch (Exception e) {
+            System.err.println("Error updating status: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to update report status: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/flag")
+>>>>>>> Stashed changes
     public ResponseEntity<?> updateFlagStatus(@PathVariable int id, @RequestBody Map<String, Boolean> payload) {
         Boolean isFlagged = payload.get("isFlagged");
         ReportEntity updatedReport = userReportService.updateFlagStatus(id, isFlagged);
@@ -160,16 +200,16 @@ public class UserReportController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Report not found");
     }
 
-    @PostMapping(value = "/submit", consumes = "multipart/form-data")
+    @PostMapping("/submit")
     public ResponseEntity<?> submitReport(
-            @RequestParam("description") String description,
-            @RequestParam(value = "latitude", required = false) Double latitude,
-            @RequestParam(value = "longitude", required = false) Double longitude,
-            @RequestParam("buildingName") String buildingName,
-            @RequestParam("userId") int userId,
-            @RequestParam(value = "image1", required = false) MultipartFile image1,
-            @RequestParam(value = "image2", required = false) MultipartFile image2,
-            @RequestParam(value = "image3", required = false) MultipartFile image3) {
+        @RequestParam("description") String description,
+        @RequestParam(value = "latitude", required = false) Double latitude,
+        @RequestParam(value = "longitude", required = false) Double longitude,
+        @RequestParam("buildingName") String buildingName,
+        @RequestParam("userId") int userId,
+        @RequestParam(value = "image1", required = false) MultipartFile image1,
+        @RequestParam(value = "image2", required = false) MultipartFile image2,
+        @RequestParam(value = "image3", required = false) MultipartFile image3) {
 
         System.out.println("\n=== Submitting New Report ===");
         System.out.println("Description: " + description);
@@ -200,8 +240,7 @@ public class UserReportController {
                 System.out.println("Image 3 saved: " + path);
             }
 
-            // Create a corresponding post entry for the submitted report 
-            PostEntity submittedReportPost = new PostEntity(); 
+            PostEntity submittedReportPost = new PostEntity();
             submittedReportPost.setContent(description != null ? description : "");
             submittedReportPost.setUserId(userId);
             submittedReportPost.setFullName(user.getFullName() != null ? user.getFullName() : "");
@@ -212,8 +251,6 @@ public class UserReportController {
             submittedReportPost.setIsSubmittedReport(true);
             submittedReportPost.setStatus("Pending");
             submittedReportPost.setVisible(true);
-
-            postService.createPost(submittedReportPost);
 
             PostEntity savedPost = postService.createPost(submittedReportPost);
             if (savedPost == null) {
@@ -244,7 +281,6 @@ public class UserReportController {
         }
     }
 
-    // Fetch all reports submitted by a user
     @GetMapping("/user/{userId}")
     public List<ReportEntity> getReportsByUser(@PathVariable int userId) {
         return userReportService.getReportsByUserId(userId);
@@ -256,27 +292,22 @@ public class UserReportController {
         return ResponseEntity.ok(statusCounts);
     }
 
-    // Fetch all pending reports
     @GetMapping("/pending/monthly")
     public ResponseEntity<List<Map<String, Object>>> getPendingReportsGroupedByMonth() {
         try {
             List<Map<String, Object>> pendingReportsByMonth = new ArrayList<>();
             
-            // Loop through each month (1 to 12) for the year 2024
             for (int month = 1; month <= 12; month++) {
                 Map<String, Object> monthData = new HashMap<>();
                 
-                // Calculate the start and end of the month using YearMonth
                 LocalDateTime startOfMonth = LocalDateTime.of(2024, month, 1, 0, 0);
                 LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
                 
-                // Log the date range for debugging
                 System.out.println("Fetching reports for month: " + month);
                 System.out.println("Start of month: " + startOfMonth);
                 System.out.println("End of month: " + endOfMonth);
                 
                 try {
-                    // Get the count of pending reports for the given month
                     long count = reportRepository.countByStatusAndSubmittedAtBetween(
                         ReportStatus.PENDING,
                         startOfMonth,
@@ -287,10 +318,9 @@ public class UserReportController {
                     monthData.put("count", count);
                     pendingReportsByMonth.add(monthData);
                 } catch (Exception e) {
-                    // Log the error for this specific month but continue processing
                     System.err.println("Error processing month " + month + ": " + e.getMessage());
                     monthData.put("month", month);
-                    monthData.put("count", 0);  // Default to 0 for error cases
+                    monthData.put("count", 0);
                     monthData.put("error", "Failed to fetch data");
                     pendingReportsByMonth.add(monthData);
                 }
@@ -310,6 +340,7 @@ public class UserReportController {
         }
     }
 
+<<<<<<< Updated upstream
     @PutMapping("/{reportId}/status")
     public ResponseEntity<?> updateReportStatus(
             @PathVariable int reportId,
@@ -331,17 +362,29 @@ public class UserReportController {
                 .body(Map.of("error", "Failed to update report status: " + e.getMessage()));
         }
     }
+=======
+    @GetMapping("/byPost/{postId}")
+public ResponseEntity<?> getReportByPostId(@PathVariable int postId) {
+    try {
+        ReportEntity report = reportRepository.findByPostId(postId)
+            .orElseThrow(() -> new RuntimeException("Report not found for post ID: " + postId));
+        return ResponseEntity.ok(report);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", "Report not found for post ID: " + postId));
+    }
+}
+>>>>>>> Stashed changes
 
-    private String saveImage(MultipartFile image) throws IOException {
-        if (image == null || image.isEmpty()) {
-            throw new IllegalArgumentException("Invalid image file");
-        }
+   private String saveImage(MultipartFile image) throws IOException {
+    if (image == null || image.isEmpty()) {
+        throw new IllegalArgumentException("Invalid image file");
+    }
+
+    String uploadDir = System.getProperty("user.home") + 
+        "/Documents/GitHub/ADMIN_TECHHIVE_FRONTEND/public/Upload_report";
+    File directory = new File(uploadDir);
     
-        // Define the upload directory path
-        String uploadDir = "C:\\Users\\corbe\\ADMIN_TECHHIVE_FRONTEND\\public\\Upload_report";
-        File directory = new File(uploadDir);
-    
-        // Create the directory if it doesn't exist
         if (!directory.exists()) {
             boolean created = directory.mkdirs();
             if (!created) {
@@ -349,11 +392,10 @@ public class UserReportController {
             }
         }
     
-        // Check if the directory is writable
         if (!directory.canWrite()) {
             throw new IOException("Upload directory is not writable: " + uploadDir);
         }
-    
+
         try {
             // Extract the original file name
             String originalFilename = image.getOriginalFilename();
@@ -379,5 +421,12 @@ public class UserReportController {
             System.err.println("Failed to save image: " + e.getMessage());
             throw new IOException("Failed to save image: " + e.getMessage());
         }
+    }
+
+    private String getFileExtension(String filename) {
+        if (filename != null && filename.contains(".")) {
+            return filename.substring(filename.lastIndexOf("."));
+        }
+        return ".jpg"; // Default extension if none is found
     }
 }

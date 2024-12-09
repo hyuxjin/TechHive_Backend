@@ -29,6 +29,55 @@ public class UserController {
     @Autowired
     private EmailVerificationService emailVerificationService; 
 
+   @PostMapping("/{userId}/adminLike")
+    public ResponseEntity<?> handleAdminLike(@PathVariable Integer userId) {
+        try {
+            userService.handleAdminLike(userId);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+      @PostMapping("/{userId}/adminDislike")
+    public ResponseEntity<?> handleAdminDislike(@PathVariable Integer userId) {
+        try {
+            userService.handleAdminDislike(userId);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+     @PostMapping("/{userId}/removeAdminLike")
+    public ResponseEntity<?> removeAdminLike(@PathVariable Integer userId) {
+        try {
+            userService.removeAdminLike(userId);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+
+    @PostMapping("/{userId}/removeAdminDislike")
+    public ResponseEntity<?> removeAdminDislike(@PathVariable Integer userId) {
+        try {
+            userService.removeAdminDislike(userId);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
     // Create new user
     @PostMapping("/insertUser")
     public ResponseEntity<UserEntity> insertUser(@RequestBody UserEntity user) {
