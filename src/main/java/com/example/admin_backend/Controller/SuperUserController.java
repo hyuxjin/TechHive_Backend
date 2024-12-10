@@ -171,23 +171,26 @@ public ResponseEntity<?> signIn(@RequestBody Map<String, String> loginData, Http
         }
     }
 
-    @PostMapping("/insertSuperUser")
-    public ResponseEntity<?> insertSuperUser(@RequestBody SuperUserEntity superUser, HttpSession session) {
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session invalid or expired");
-        }
-
-        if (superUser.getSuperUsername() == null || superUser.getSuperUsername().isEmpty()) {
-            return ResponseEntity.badRequest().body("SuperUsername cannot be null or empty.");
-        }
-        try {
-            SuperUserEntity createdUser = superUserService.insertSuperUser(superUser);
-            return ResponseEntity.ok(createdUser);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error creating SuperUser: " + e.getMessage());
-        }
+   @PostMapping("/insertSuperUser")
+public ResponseEntity<?> insertSuperUser(@RequestBody SuperUserEntity superUser) {
+    // Remove session check since we don't need authentication
+    
+    // Basic validation
+    if (superUser.getSuperUsername() == null || superUser.getSuperUsername().isEmpty()) {
+        return ResponseEntity.badRequest().body("SuperUsername cannot be null or empty.");
     }
+
+    try {
+        // Set default status to true for new accounts
+        superUser.setStatus(true);
+        
+        SuperUserEntity createdUser = superUserService.insertSuperUser(superUser);
+        return ResponseEntity.ok(createdUser);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error creating SuperUser: " + e.getMessage());
+    }
+}
 
    @GetMapping("/getAllSuperUsers")
     public ResponseEntity<?> getAllSuperUsers() {

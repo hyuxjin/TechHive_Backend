@@ -101,14 +101,11 @@ public class AdminController {
 
     // Create Admin - Protected endpoint
     @PostMapping("/insertAdmin")
-    public ResponseEntity<?> insertAdmin(@RequestBody AdminEntity admin, HttpSession session) {
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session invalid or expired");
-        }
-        
-        admin.setStatus(true); // Default status to active
-        return ResponseEntity.ok(adminService.insertAdmin(admin));
-    }
+public ResponseEntity<?> insertAdmin(@RequestBody AdminEntity admin) {
+    // Remove the session check since superuser doesn't need authentication
+    admin.setStatus(true); // Default status to active
+    return ResponseEntity.ok(adminService.insertAdmin(admin));
+}
 
     // Retrieve All Admins - Protected endpoint
    @GetMapping("/getAllAdmins")
