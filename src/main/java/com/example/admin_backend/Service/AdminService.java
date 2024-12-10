@@ -74,12 +74,16 @@ public class AdminService {
    }
 
    public AdminEntity getAdminByIdNumberAndPassword(String idNumber, String password) {
-       AdminEntity admin = adminRepository.findByIdNumber(idNumber);
-       if (admin != null && encoder.matches(password, admin.getPassword())) {
-           return admin;
-       }
-       return null;
-   }
+    AdminEntity admin = adminRepository.findByIdNumber(idNumber);
+    if (admin != null && encoder.matches(password, admin.getPassword())) {
+        // Only allow login if account is enabled
+        if (!admin.getStatus()) {
+            return null; // Return null for disabled accounts
+        }
+        return admin;
+    }
+    return null;
+}
 
    public AdminEntity getAdminByIdNumber(String idNumber) {
        return adminRepository.findByIdNumber(idNumber);

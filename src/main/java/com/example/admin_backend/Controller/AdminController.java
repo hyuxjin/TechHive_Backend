@@ -160,32 +160,26 @@ public ResponseEntity<?> getAllAdmins() {
     }
 
     // Update Admin Status - Protected endpoint
-    @PutMapping("/updateStatus")
-    public ResponseEntity<?> updateAdminStatus(
-            @RequestBody Map<String, Object> requestBody,
-            HttpSession session) {
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session invalid or expired");
+   @PutMapping("/updateStatus")
+public ResponseEntity<?> updateAdminStatus(@RequestBody Map<String, Object> requestBody) {
+    String idNumber = (String) requestBody.get("idNumber");
+    Boolean status = (Boolean) requestBody.get("status");
+
+    try {
+        AdminEntity admin = adminService.getAdminByIdNumber(idNumber);
+        if (admin == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found.");
         }
 
-        String idNumber = (String) requestBody.get("idNumber");
-        Boolean status = (Boolean) requestBody.get("status");
+        admin.setStatus(status);
+        adminService.saveAdmin(admin);
 
-        try {
-            AdminEntity admin = adminService.getAdminByIdNumber(idNumber);
-            if (admin == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found.");
-            }
-
-            admin.setStatus(status);
-            adminService.saveAdmin(admin);
-
-            return ResponseEntity.ok("Status updated successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating admin status.");
-        }
+        return ResponseEntity.ok("Status updated successfully.");
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error updating admin status.");
     }
+}
 
     // Password reset endpoints don't need session validation
     @PostMapping("/requestPasswordReset")
