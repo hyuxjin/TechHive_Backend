@@ -187,11 +187,8 @@ public class SuperUserController {
         }
     }
 
-    @GetMapping("/getAllSuperUsers")
-    public ResponseEntity<?> getAllSuperUsers(HttpSession session) {
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session invalid or expired");
-        }
+   @GetMapping("/getAllSuperUsers")
+    public ResponseEntity<?> getAllSuperUsers() {
         return ResponseEntity.ok(superUserService.getAllSuperUsers());
     }
 

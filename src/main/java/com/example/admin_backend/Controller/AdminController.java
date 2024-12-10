@@ -3,6 +3,7 @@ package com.example.admin_backend.Controller;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -110,13 +111,11 @@ public class AdminController {
     }
 
     // Retrieve All Admins - Protected endpoint
-    @GetMapping("/getAllAdmins")
-    public ResponseEntity<?> getAllAdmins(HttpSession session) {
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session invalid or expired");
-        }
-        return ResponseEntity.ok(adminService.getAllAdmins());
-    }
+   @GetMapping("/getAllAdmins")
+public ResponseEntity<?> getAllAdmins() {
+    List<AdminEntity> admins = adminService.getAllAdmins();
+    return ResponseEntity.ok(admins);
+}
 
     // Update Password - Protected endpoint
     @PutMapping("/updatePassword")
