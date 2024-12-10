@@ -120,14 +120,15 @@ public ResponseEntity<?> getAllAdmins() {
             @RequestParam Integer adminId,
             @RequestBody Map<String, String> requestBody,
             HttpSession session) {
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session invalid or expired");
-        }
-
-        String currentPassword = requestBody.get("currentPassword");
-        String newPassword = requestBody.get("newPassword");
+        
+        // Add debug logging
+        System.out.println("Session ID: " + session.getId());
+        System.out.println("Admin ID from request: " + adminId);
 
         try {
+            String currentPassword = requestBody.get("currentPassword");
+            String newPassword = requestBody.get("newPassword");
+
             AdminEntity updatedAdmin = adminService.updateAdmin(adminId, newPassword, currentPassword);
             return ResponseEntity.ok(updatedAdmin);
         } catch (NoSuchElementException e) {
@@ -135,7 +136,10 @@ public ResponseEntity<?> getAllAdmins() {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+            System.out.println("Error updating password: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating password: " + e.getMessage());
         }
     }
 
