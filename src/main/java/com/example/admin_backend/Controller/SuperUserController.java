@@ -35,21 +35,82 @@ public class SuperUserController {
         return "It works!";
     }
 
+    // Password Reset Endpoints
+    @PostMapping("/requestPasswordReset")
+    public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, String> requestBody) {
+        try {
+            String email = requestBody.get("email");
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Email is required");
+            }
+            String resetCode = superUserService.generatePasswordResetCode(email);
+            return ResponseEntity.ok().body("Reset code sent successfully to " + email);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with email not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error sending reset code: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/validateResetCode")
+    public ResponseEntity<?> validateResetCode(@RequestBody Map<String, String> requestBody) {
+        try {
+            String email = requestBody.get("email");
+            String resetCode = requestBody.get("resetCode");
+            
+            if (email == null || resetCode == null) {
+                return ResponseEntity.badRequest().body("Email and reset code are required");
+            }
+            
+            superUserService.validateResetCode(email, resetCode);
+            return ResponseEntity.ok("Reset code validated successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error validating reset code: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> requestBody) {
+        try {
+            String email = requestBody.get("email");
+            String newPassword = requestBody.get("newPassword");
+            
+            if (email == null || newPassword == null) {
+                return ResponseEntity.badRequest().body("Email and new password are required");
+            }
+            
+            superUserService.resetPassword(email, newPassword);
+            return ResponseEntity.ok("Password reset successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error resetting password: " + e.getMessage());
+        }
+    }
+
     // SuperUser Sign-in with session management
     @PostMapping("/signin")
     public ResponseEntity<?> signIn(@RequestBody Map<String, String> loginData, HttpSession session) {
         String superUserIdNumber = loginData.get("superUserIdNumber");
         String superUserPassword = loginData.get("superUserPassword");
 
-        System.out.println("Login attempt with ID: " + superUserIdNumber); // Debug log
-
-        if (superUserIdNumber == null || superUserPassword == null) {
+        if (superUserIdNumber == null || superUserPassword == null || 
+            superUserIdNumber.trim().isEmpty() || superUserPassword.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("ID number and password are required");
         }
 
         try {
             SuperUserEntity superuser = superUserService.getSuperUserBySuperUserIdNumberAndSuperUserPassword(
-                    superUserIdNumber, superUserPassword);
+                    superUserIdNumber.trim(), superUserPassword);
             
             if (superuser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
@@ -72,6 +133,8 @@ public class SuperUserController {
             
             return ResponseEntity.ok(response);
             
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred during sign-in: " + e.getMessage());
