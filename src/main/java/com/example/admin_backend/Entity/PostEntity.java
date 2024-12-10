@@ -2,9 +2,9 @@ package com.example.admin_backend.Entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.HashSet;
 import java.util.Set;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "tblpost")
@@ -38,8 +38,23 @@ public class PostEntity {
     @Column(name = "is_visible")
     private Boolean isVisible = true;
     
-    private Integer likes;
-    private Integer dislikes;
+    @Column(name = "likes")
+    private Integer likes = 0;
+    
+    @Column(name = "dislikes")
+    private Integer dislikes = 0;
+    
+    @ElementCollection
+@CollectionTable(name = "post_liked_by", 
+    joinColumns = @JoinColumn(name = "post_id"))
+@Column(name = "user_identifier")  // Will store "userId_role"
+private Set<String> likedBy = new HashSet<>();
+
+@ElementCollection
+@CollectionTable(name = "post_disliked_by", 
+    joinColumns = @JoinColumn(name = "post_id"))
+@Column(name = "user_identifier")  // Will store "userId_role"
+private Set<String> dislikedBy = new HashSet<>();
     
     @Column(name = "fullname")
     private String fullname;
@@ -54,16 +69,6 @@ public class PostEntity {
     
     @Column(columnDefinition = "LONGTEXT")
     private String image;
-    
-   @ElementCollection
-@CollectionTable(name = "post_liked_by", joinColumns = @JoinColumn(name = "post_id"))
-@Column(name = "user_id")
-private Set<Integer> likedBy = new HashSet<>();
-
-@ElementCollection
-@CollectionTable(name = "post_disliked_by", joinColumns = @JoinColumn(name = "post_id"))
-@Column(name = "user_id")
-private Set<Integer> dislikedBy = new HashSet<>();
     
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
@@ -86,7 +91,10 @@ private Set<Integer> dislikedBy = new HashSet<>();
     @Column(name = "last_modified_at")
     private LocalDateTime lastModifiedAt;
 
-    // Standard getters and setters
+    // Constructor
+    public PostEntity() {}
+
+    // Getters and Setters
     public int getPostId() {
         return postId;
     }
@@ -143,15 +151,6 @@ private Set<Integer> dislikedBy = new HashSet<>();
         this.userRole = userRole;
     }
 
-    // Methods for boolean fields with both styles
-    public boolean isVerified() {
-        return isVerified;
-    }
-
-    public void setVerified(boolean verified) {
-        this.isVerified = verified;
-    }
-
     public Boolean getIsVerified() {
         return isVerified;
     }
@@ -160,12 +159,12 @@ private Set<Integer> dislikedBy = new HashSet<>();
         this.isVerified = verified;
     }
 
-    public boolean isVisible() {
-        return isVisible;
+    public boolean isVerified() {
+        return isVerified;
     }
 
-    public void setVisible(boolean visible) {
-        this.isVisible = visible;
+    public void setVerified(boolean verified) {
+        this.isVerified = verified;
     }
 
     public Boolean getIsVisible() {
@@ -173,6 +172,14 @@ private Set<Integer> dislikedBy = new HashSet<>();
     }
 
     public void setIsVisible(Boolean visible) {
+        this.isVisible = visible;
+    }
+
+    public boolean isVisible() {
+        return isVisible;
+    }
+
+    public void setVisible(boolean visible) {
         this.isVisible = visible;
     }
 
@@ -192,7 +199,22 @@ private Set<Integer> dislikedBy = new HashSet<>();
         this.dislikes = dislikes;
     }
 
-    // Methods for name fields with both styles
+    public Set<String> getLikedBy() {
+        return likedBy;
+    }
+
+    public void setLikedBy(Set<String> likedBy) {
+        this.likedBy = likedBy;
+    }
+
+    public Set<String> getDislikedBy() {
+        return dislikedBy;
+    }
+
+    public void setDislikedBy(Set<String> dislikedBy) {
+        this.dislikedBy = dislikedBy;
+    }
+
     public String getFullname() {
         return fullname;
     }
@@ -241,20 +263,12 @@ private Set<Integer> dislikedBy = new HashSet<>();
         this.image = image;
     }
 
-    public Set<Integer> getLikedBy() {
-        return likedBy;
+    public Boolean getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setLikedBy(Set<Integer> likedBy) {
-        this.likedBy = likedBy;
-    }
-
-    public Set<Integer> getDislikedBy() {
-        return dislikedBy;
-    }
-
-    public void setDislikedBy(Set<Integer> dislikedBy) {
-        this.dislikedBy = dislikedBy;
+    public void setIsDeleted(Boolean deleted) {
+        this.isDeleted = deleted;
     }
 
     public boolean isDeleted() {
@@ -262,14 +276,6 @@ private Set<Integer> dislikedBy = new HashSet<>();
     }
 
     public void setDeleted(boolean deleted) {
-        this.isDeleted = deleted;
-    }
-
-    public Boolean getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Boolean deleted) {
         this.isDeleted = deleted;
     }
 
@@ -289,20 +295,20 @@ private Set<Integer> dislikedBy = new HashSet<>();
         this.status = status;
     }
 
-    public Integer getReportId() {
-        return reportId;
-    }
-
-    public void setReportId(Integer reportId) {
-        this.reportId = reportId;
-    }
-
     public String getAdminNotes() {
         return adminNotes;
     }
 
     public void setAdminNotes(String adminNotes) {
         this.adminNotes = adminNotes;
+    }
+
+    public Integer getReportId() {
+        return reportId;
+    }
+
+    public void setReportId(Integer reportId) {
+        this.reportId = reportId;
     }
 
     public Integer getLastModifiedBy() {

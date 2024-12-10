@@ -16,7 +16,6 @@ import com.example.admin_backend.Repository.*;
 
 @Service
 public class PostService {
-
     @Autowired
     private PostRepository postRepository;
 
@@ -39,7 +38,6 @@ public class PostService {
     private ReportRepository reportRepository;
 
     @Autowired
-    @SuppressWarnings("unused")
     private LeaderboardService leaderboardService;
 
     // Get all posts
@@ -86,49 +84,47 @@ public class PostService {
     }
 
     // Create new post
-    @Transactional
-    public PostEntity createPost(PostEntity post) {
-        try {
-            System.out.println("Creating new post");
-            if (post.getContent() == null && post.getImage() == null) {
-                throw new IllegalArgumentException("Post must have either content or an image");
-            }
-
-            post.setTimestamp(LocalDateTime.now());
-            post.setDeleted(false);
-            post.setLikedBy(new HashSet<>());
-            post.setDislikedBy(new HashSet<>());
-            post.setLikes(0);
-            post.setDislikes(0);
-
-            // Set initial status only for report posts
-            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-                post.setStatus(ReportStatus.PENDING.toString());
-            } else {
-                post.setStatus(null); // Ensure non-report posts have no status
-            }
-
-            PostEntity savedPost;
-            switch (post.getUserRole().toUpperCase()) {
-                case "USER":
-                    savedPost = createUserPost(post);
-                    break;
-                case "ADMIN":
-                    savedPost = createAdminPost(post);
-                    break;
-                case "SUPERUSER":
-                    savedPost = createSuperUserPost(post);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid user role");
-            }
-            System.out.println("Post created successfully with ID: " + savedPost.getPostId());
-            return savedPost;
-        } catch (Exception e) {
-            System.err.println("Error creating post: " + e.getMessage());
-            throw e;
+   @Transactional
+public PostEntity createPost(PostEntity post) {
+    try {
+        System.out.println("Creating new post");
+        if (post.getContent() == null && post.getImage() == null) {
+            throw new IllegalArgumentException("Post must have either content or an image");
         }
+
+        post.setTimestamp(LocalDateTime.now());
+        post.setDeleted(false);
+post.setLikedBy(new HashSet<String>());  // Initialize empty Set<String>
+post.setDislikedBy(new HashSet<String>()); // Initialize empty Set<String>        post.setLikes(0);
+        post.setDislikes(0);
+
+        if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+            post.setStatus(ReportStatus.PENDING.toString());
+        } else {
+            post.setStatus(null);
+        }
+
+        PostEntity savedPost;
+        switch (post.getUserRole().toUpperCase()) {
+            case "USER":
+                savedPost = createUserPost(post);
+                break;
+            case "ADMIN":
+                savedPost = createAdminPost(post);
+                break;
+            case "SUPERUSER":
+                savedPost = createSuperUserPost(post);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid user role");
+        }
+        System.out.println("Post created successfully with ID: " + savedPost.getPostId());
+        return savedPost;
+    } catch (Exception e) {
+        System.err.println("Error creating post: " + e.getMessage());
+        throw e;
     }
+}
 
     private PostEntity createUserPost(PostEntity post) {
         if (post.getUserId() == 0) {
@@ -141,6 +137,7 @@ public class PostService {
         user.setPoints(Math.max(user.getPoints(), 0));
         
         post.setFullName(user.getFullName());
+        post.setIdnumber(user.getIdNumber());
         post.setProfile(profileRepository.findByUser(user));
         post.setTimestamp(LocalDateTime.now());
         post.setIsSubmittedReport(post.getIsSubmittedReport()); 
@@ -154,6 +151,7 @@ public class PostService {
             .orElseThrow(() -> new RuntimeException("Admin not found"));
 
         post.setFullName(admin.getFullName());
+        post.setIdnumber(admin.getIdNumber());
         post.setProfile(profileRepository.findByAdmin(admin));
         post.setVerified(true);
         
@@ -165,6 +163,7 @@ public class PostService {
             .orElseThrow(() -> new RuntimeException("Superuser not found"));
 
         post.setFullName(superuser.getFullName());
+        post.setIdnumber(superuser.getIdNumber());
         post.setVerified(true);
         
         return postRepository.save(post);
@@ -232,7 +231,106 @@ public class PostService {
         }
     }
 
-    // Post visibility
+    // Like/Dislike handling
+   @Transactional
+    public PostEntity handleLike(Integer postId, Integer userId, String userRole) {
+        PostEntity post = postRepository.findById(postId)
+            .orElseThrow(() -> new NoSuchElementException("Post not found"));
+
+        String userIdentifier = userId + "_" + userRole.toUpperCase();
+
+        if (post.getLikedBy().contains(userIdentifier)) {
+            // Remove like
+            post.getLikedBy().remove(userIdentifier);
+            post.setLikes(post.getLikes() - 1);
+            
+            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+                handlePointsDeduction(post.getUserId(), userRole);
+            }
+        } else {
+            // Remove dislike if exists
+            if (post.getDislikedBy().contains(userIdentifier)) {
+                post.getDislikedBy().remove(userIdentifier);
+                post.setDislikes(post.getDislikes() - 1);
+                if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+                    handlePointsAddition(post.getUserId(), userRole);
+                }
+            }
+            
+            // Add like
+            post.getLikedBy().add(userIdentifier);
+            post.setLikes(post.getLikes() + 1);
+            
+            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+                handlePointsAddition(post.getUserId(), userRole);
+            }
+        }
+
+        return postRepository.save(post);
+    }
+
+    @Transactional
+    public PostEntity handleDislike(Integer postId, Integer userId, String userRole) {
+        PostEntity post = postRepository.findById(postId)
+            .orElseThrow(() -> new NoSuchElementException("Post not found"));
+
+        String userIdentifier = userId + "_" + userRole.toUpperCase();
+
+        if (post.getDislikedBy().contains(userIdentifier)) {
+            // Remove dislike
+            post.getDislikedBy().remove(userIdentifier);
+            post.setDislikes(post.getDislikes() - 1);
+            
+            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+                handlePointsAddition(post.getUserId(), userRole);
+            }
+        } else {
+            // Remove like if exists
+            if (post.getLikedBy().contains(userIdentifier)) {
+                post.getLikedBy().remove(userIdentifier);
+                post.setLikes(post.getLikes() - 1);
+                if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+                    handlePointsDeduction(post.getUserId(), userRole);
+                }
+            }
+            
+            // Add dislike
+            post.getDislikedBy().add(userIdentifier);
+            post.setDislikes(post.getDislikes() + 1);
+            
+            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+                handlePointsDeduction(post.getUserId(), userRole);
+            }
+        }
+
+        return postRepository.save(post);
+    }
+
+
+    private void handlePointsAddition(Integer userId, String userRole) {
+        int points = getPointsByRole(userRole);
+        if (points > 0) {
+            leaderboardService.addPoints(userId, points);
+        }
+    }
+
+    private void handlePointsDeduction(Integer userId, String userRole) {
+        int points = getPointsByRole(userRole);
+        if (points > 0) {
+            leaderboardService.subtractPoints(userId, points);
+        }
+    }
+
+    private int getPointsByRole(String userRole) {
+        switch (userRole.toUpperCase()) {
+            case "SUPERUSER": return 5;
+            case "ADMIN": return 3;
+            case "USER": return 1;
+            default: return 0;
+        }
+    }
+
+    // Visibility and Delete operations
     public PostEntity updateVisibility(int postId, boolean newVisibility) {
         try {
             System.out.println("Updating visibility for post ID: " + postId);
@@ -249,7 +347,6 @@ public class PostService {
         }
     }
 
-    // Soft delete
     @Transactional
     public void softDeletePost(int postId) {
         try {
@@ -266,7 +363,7 @@ public class PostService {
         }
     }
 
-    // Comments
+    // Comment operations
     public List<CommentEntity> getCommentsByPostId(int postId) {
         try {
             System.out.println("Fetching comments for post ID: " + postId);
@@ -292,302 +389,31 @@ public class PostService {
         }
     }
 
-  // 
-
-  @Transactional
-private void handleLikeReaction(PostEntity post, Integer userId) {
-    Set<Integer> likedBy = post.getLikedBy();
-    Set<Integer> dislikedBy = post.getDislikedBy();
-    
-    // Initialize sets if null
-    if (likedBy == null) {
-        likedBy = new HashSet<>();
-        post.setLikedBy(likedBy);
-    }
-    if (dislikedBy == null) {
-        dislikedBy = new HashSet<>();
-        post.setDislikedBy(dislikedBy);
-    }
-
-    // If already liked, remove like
-    if (likedBy.contains(userId)) {
-        likedBy.remove(userId);
-        post.setLikes(post.getLikes() - 1);
-    } 
-    // If not liked and not disliked, add like
-    else if (!dislikedBy.contains(userId)) {
-        likedBy.add(userId);
-        post.setLikes(post.getLikes() + 1);
-    }
-    // If disliked, remove dislike and add like
-    else {
-        dislikedBy.remove(userId);
-        likedBy.add(userId);
-        post.setDislikes(post.getDislikes() - 1);
-        post.setLikes(post.getLikes() + 1);
-    }
-}
-
-@Transactional
-private void handleDislikeReaction(PostEntity post, Integer userId) {
-    Set<Integer> likedBy = post.getLikedBy();
-    Set<Integer> dislikedBy = post.getDislikedBy();
-    
-    // Initialize sets if null
-    if (likedBy == null) {
-        likedBy = new HashSet<>();
-        post.setLikedBy(likedBy);
-    }
-    if (dislikedBy == null) {
-        dislikedBy = new HashSet<>();
-        post.setDislikedBy(dislikedBy);
-    }
-
-    // If already disliked, remove dislike
-    if (dislikedBy.contains(userId)) {
-        dislikedBy.remove(userId);
-        post.setDislikes(post.getDislikes() - 1);
-    }
-    // If not disliked and not liked, add dislike
-    else if (!likedBy.contains(userId)) {
-        dislikedBy.add(userId);
-        post.setDislikes(post.getDislikes() + 1);
-    }
-    // If liked, remove like and add dislike
-    else {
-        likedBy.remove(userId);
-        dislikedBy.add(userId);
-        post.setLikes(post.getLikes() - 1);
-        post.setDislikes(post.getDislikes() + 1);
-    }
-}
-
-@Transactional
-private void handleReportPostPoints(PostEntity post, String userRole, boolean isLike) {
-    // Only process points if it's a report post
-    if (!Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-        return;
-    }
-
-    int points;
-    switch (userRole.toUpperCase()) {
-        case "ADMIN":
-            points = 3;
-            break;
-        case "SUPERUSER":
-            points = 5;
-            break;
-        case "USER":
-            points = 1;
-            break;
-        default:
-            return;
-    }
-
-    if (!isLike) {
-        points = -points; // Make points negative for dislikes
-    }
-
-    // Add or subtract points from the report post owner
-    if (points > 0) {
-        leaderboardService.addPoints(post.getUserId(), Math.abs(points));
-    } else {
-        leaderboardService.subtractPoints(post.getUserId(), Math.abs(points));
-    }
-}
-
-@Transactional
-public PostEntity handleLike(Integer postId, Integer userId, String userRole) {
-    PostEntity post = postRepository.findById(postId)
-        .orElseThrow(() -> new NoSuchElementException("Post not found"));
-
-    // Initialize sets if null
-    Set<Integer> likedBy = post.getLikedBy() != null ? post.getLikedBy() : new HashSet<>();
-    Set<Integer> dislikedBy = post.getDislikedBy() != null ? post.getDislikedBy() : new HashSet<>();
-
-    // If user has already liked, remove the like
-    if (likedBy.contains(userId)) {
-        likedBy.remove(userId);
-        post.setLikes(likedBy.size());
-        
-        // Remove points if it's a report post
-        if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-            int points = 0;
-            switch (userRole.toUpperCase()) {
-                case "SUPERUSER":
-                    points = 5;
-                    break;
-                case "ADMIN":
-                    points = 3;
-                    break;
-                case "USER":
-                    points = 1;
-                    break;
-            }
-            if (points > 0) {
-                leaderboardService.subtractPoints(post.getUserId(), points);
-            }
-        }
-    } 
-    else {
-        // If user has disliked, remove the dislike first
-        if (dislikedBy.contains(userId)) {
-            dislikedBy.remove(userId);
-            post.setDislikes(dislikedBy.size());
-            
-            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-                int points = 0;
-                switch (userRole.toUpperCase()) {
-                    case "SUPERUSER":
-                        points = 5;
-                        break;
-                    case "ADMIN":
-                        points = 3;
-                        break;
-                    case "USER":
-                        points = 1;
-                        break;
-                }
-                if (points > 0) {
-                    leaderboardService.addPoints(post.getUserId(), points);
-                }
-            }
-        }
-        
-        // Add the like
-        likedBy.add(userId);
-        post.setLikes(likedBy.size());
-        
-        if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-            int points = 0;
-            switch (userRole.toUpperCase()) {
-                case "SUPERUSER":
-                    points = 5;
-                    break;
-                case "ADMIN":
-                    points = 3;
-                    break;
-                case "USER":
-                    points = 1;
-                    break;
-            }
-            if (points > 0) {
-                leaderboardService.addPoints(post.getUserId(), points);
-            }
-        }
-    }
-
-    post.setLikedBy(likedBy);
-    post.setDislikedBy(dislikedBy);
-    return postRepository.save(post);
-}
-
-@Transactional
-public PostEntity handleDislike(Integer postId, Integer userId, String userRole) {
-    PostEntity post = postRepository.findById(postId)
-        .orElseThrow(() -> new NoSuchElementException("Post not found"));
-
-    // Initialize sets if null
-    Set<Integer> likedBy = post.getLikedBy() != null ? post.getLikedBy() : new HashSet<>();
-    Set<Integer> dislikedBy = post.getDislikedBy() != null ? post.getDislikedBy() : new HashSet<>();
-
-    // If user has already disliked, remove the dislike
-    if (dislikedBy.contains(userId)) {
-        dislikedBy.remove(userId);
-        post.setDislikes(dislikedBy.size());
-        
-        // Add points back if it's a report post
-        if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-            int points = 0;
-            switch (userRole.toUpperCase()) {
-                case "SUPERUSER":
-                    points = 5;
-                    break;
-                case "ADMIN":
-                    points = 3;
-                    break;
-                case "USER":
-                    points = 1;
-                    break;
-            }
-            if (points > 0) {
-                leaderboardService.addPoints(post.getUserId(), points);
-            }
-        }
-    } 
-    else {
-        // If user has liked, remove the like first
-        if (likedBy.contains(userId)) {
-            likedBy.remove(userId);
-            post.setLikes(likedBy.size());
-            
-            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-                int points = 0;
-                switch (userRole.toUpperCase()) {
-                    case "SUPERUSER":
-                        points = 5;
-                        break;
-                    case "ADMIN":
-                        points = 3;
-                        break;
-                    case "USER":
-                        points = 1;
-                    break;
-                }
-                if (points > 0) {
-                    leaderboardService.subtractPoints(post.getUserId(), points);
-                }
-            }
-        }
-        
-        // Add the dislike
-        dislikedBy.add(userId);
-        post.setDislikes(dislikedBy.size());
-        
-        if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-            int points = 0;
-            switch (userRole.toUpperCase()) {
-                case "SUPERUSER":
-                    points = 5;
-                    break;
-                case "ADMIN":
-                    points = 3;
-                    break;
-                case "USER":
-                    points = 1;
-                    break;
-            }
-            if (points > 0) {
-                leaderboardService.subtractPoints(post.getUserId(), points);
-            }
-        }
-    }
-
-    post.setLikedBy(likedBy);
-    post.setDislikedBy(dislikedBy);
-    return postRepository.save(post);
-}
-
-    // Helper methods
-    private void updateUserPoints(int userId, int pointChange) {
+    // Report post operations
+    public List<PostEntity> getAllReportPosts() {
         try {
-            System.out.println("Updating points for user ID: " + userId + " by " + pointChange + " points");
-            if ("USER".equalsIgnoreCase(userRepository.findById(userId)
-                    .map(UserEntity::getRole)
-                    .orElse(null))) {
-                UserEntity user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-                user.setPoints(Math.max(0, user.getPoints() + pointChange));
-                userRepository.save(user);
-                System.out.println("User points updated successfully");
-            }
+            System.out.println("Fetching all report posts");
+            List<PostEntity> reportPosts = postRepository.findByIsSubmittedReportTrueAndIsDeletedFalseOrderByTimestampDesc();
+            System.out.println("Found " + reportPosts.size() + " report posts");
+            return reportPosts;
         } catch (Exception e) {
-            System.err.println("Error updating user points: " + e.getMessage());
-            throw e;
+            System.err.println("Error fetching report posts: " + e.getMessage());
+            throw new RuntimeException("Error fetching report posts", e);
         }
     }
 
-    // Report post methods
+    public List<PostEntity> getReportPostsByStatus(String status) {
+        try {
+            System.out.println("Fetching report posts with status: " + status);
+            List<PostEntity> reportPosts = postRepository.findByIsSubmittedReportTrueAndStatusAndIsDeletedFalse(status);
+            System.out.println("Found " + reportPosts.size() + " report posts with status: " + status);
+            return reportPosts;
+        } catch (Exception e) {
+            System.err.println("Error fetching report posts by status: " + e.getMessage());
+            throw new RuntimeException("Error fetching report posts by status", e);
+        }
+    }
+
     @Transactional
     public void updatePostStatusFromReport(int postId, ReportStatus reportStatus) {
         try {
@@ -628,30 +454,6 @@ public PostEntity handleDislike(Integer postId, Integer userId, String userRole)
         } catch (Exception e) {
             System.err.println("Error syncing post with report: " + e.getMessage());
             throw e;
-        }
-    }
-
-    public List<PostEntity> getAllReportPosts() {
-        try {
-            System.out.println("Fetching all report posts");
-            List<PostEntity> reportPosts = postRepository.findByIsSubmittedReportTrueAndIsDeletedFalseOrderByTimestampDesc();
-            System.out.println("Found " + reportPosts.size() + " report posts");
-            return reportPosts;
-        } catch (Exception e) {
-            System.err.println("Error fetching report posts: " + e.getMessage());
-            throw new RuntimeException("Error fetching report posts", e);
-        }
-    }
-
-    public List<PostEntity> getReportPostsByStatus(String status) {
-        try {
-            System.out.println("Fetching report posts with status: " + status);
-            List<PostEntity> reportPosts = postRepository.findByIsSubmittedReportTrueAndStatusAndIsDeletedFalse(status);
-            System.out.println("Found " + reportPosts.size() + " report posts with status: " + status);
-            return reportPosts;
-        } catch (Exception e) {
-            System.err.println("Error fetching report posts by status: " + e.getMessage());
-            throw new RuntimeException("Error fetching report posts by status", e);
         }
     }
 }
