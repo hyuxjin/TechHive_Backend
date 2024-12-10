@@ -39,14 +39,14 @@ public class PostController {
 
     // Get visible posts only with report status
     @GetMapping("/visible")
-    public ResponseEntity<List<PostEntity>> getVisiblePosts() {
-        try {
-            System.out.println("==== START: getVisiblePosts ====");
-            String query = "SELECT p.*, r.status as report_status " +
-                    "FROM tblpost p " +
-                    "LEFT JOIN tblreport r ON p.reportid = r.reportId " +
-                    "WHERE p.is_visible = true " +
-                    "ORDER BY p.timestamp DESC";
+public ResponseEntity<List<PostEntity>> getVisiblePosts() {
+    try {
+        System.out.println("==== START: getVisiblePosts ====");
+        String query = "SELECT p.*, r.status as report_status " +
+                "FROM tblpost p " +
+                "LEFT JOIN tblreport r ON p.reportid = r.reportId " +
+                "WHERE p.is_visible = true AND p.is_deleted = false " + // Added is_deleted check
+                "ORDER BY p.timestamp DESC";
 
             List<PostEntity> posts = jdbcTemplate.query(query, (rs, rowNum) -> {
                 PostEntity post = new PostEntity();
