@@ -232,79 +232,95 @@ post.setDislikedBy(new HashSet<String>()); // Initialize empty Set<String>      
     }
 
     // Like/Dislike handling
-   @Transactional
-    public PostEntity handleLike(Integer postId, Integer userId, String userRole) {
-        PostEntity post = postRepository.findById(postId)
-            .orElseThrow(() -> new NoSuchElementException("Post not found"));
+  @Transactional
+public PostEntity handleLike(Integer postId, Integer userId, String userRole) {
+    PostEntity post = postRepository.findById(postId)
+        .orElseThrow(() -> new NoSuchElementException("Post not found"));
 
-        String userIdentifier = userId + "_" + userRole.toUpperCase();
+    String userIdentifier = userId + "_" + userRole.toUpperCase();
 
-        if (post.getLikedBy().contains(userIdentifier)) {
-            // Remove like
-            post.getLikedBy().remove(userIdentifier);
-            post.setLikes(post.getLikes() - 1);
-            
-            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-                handlePointsDeduction(post.getUserId(), userRole);
-            }
-        } else {
-            // Remove dislike if exists
-            if (post.getDislikedBy().contains(userIdentifier)) {
-                post.getDislikedBy().remove(userIdentifier);
-                post.setDislikes(post.getDislikes() - 1);
-                if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-                    handlePointsAddition(post.getUserId(), userRole);
-                }
-            }
-            
-            // Add like
-            post.getLikedBy().add(userIdentifier);
-            post.setLikes(post.getLikes() + 1);
-            
-            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-                handlePointsAddition(post.getUserId(), userRole);
-            }
+    // Check if this is the post owner's reaction on their own report post
+    boolean isOwnerReaction = Boolean.TRUE.equals(post.getIsSubmittedReport()) && 
+                            post.getUserId() != null && 
+                            post.getUserId().equals(userId) && 
+                            "USER".equalsIgnoreCase(userRole);
+
+    if (post.getLikedBy().contains(userIdentifier)) {
+        // Remove like
+        post.getLikedBy().remove(userIdentifier);
+        post.setLikes(post.getLikes() - 1);
+        
+        // Only deduct points if it's not the owner's reaction on their report post
+        if (Boolean.TRUE.equals(post.getIsSubmittedReport()) && !isOwnerReaction) {
+            handlePointsDeduction(post.getUserId(), userRole);
         }
-
-        return postRepository.save(post);
-    }
-
-    @Transactional
-    public PostEntity handleDislike(Integer postId, Integer userId, String userRole) {
-        PostEntity post = postRepository.findById(postId)
-            .orElseThrow(() -> new NoSuchElementException("Post not found"));
-
-        String userIdentifier = userId + "_" + userRole.toUpperCase();
-
+    } else {
+        // Remove dislike if exists
         if (post.getDislikedBy().contains(userIdentifier)) {
-            // Remove dislike
             post.getDislikedBy().remove(userIdentifier);
             post.setDislikes(post.getDislikes() - 1);
-            
-            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+            if (Boolean.TRUE.equals(post.getIsSubmittedReport()) && !isOwnerReaction) {
                 handlePointsAddition(post.getUserId(), userRole);
             }
-        } else {
-            // Remove like if exists
-            if (post.getLikedBy().contains(userIdentifier)) {
-                post.getLikedBy().remove(userIdentifier);
-                post.setLikes(post.getLikes() - 1);
-                if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
-                    handlePointsDeduction(post.getUserId(), userRole);
-                }
-            }
-            
-            // Add dislike
-            post.getDislikedBy().add(userIdentifier);
-            post.setDislikes(post.getDislikes() + 1);
-            
-            if (Boolean.TRUE.equals(post.getIsSubmittedReport())) {
+        }
+        
+        // Add like
+        post.getLikedBy().add(userIdentifier);
+        post.setLikes(post.getLikes() + 1);
+        
+        // Only add points if it's not the owner's reaction on their report post
+        if (Boolean.TRUE.equals(post.getIsSubmittedReport()) && !isOwnerReaction) {
+            handlePointsAddition(post.getUserId(), userRole);
+        }
+    }
+
+    return postRepository.save(post);
+}
+
+@Transactional
+public PostEntity handleDislike(Integer postId, Integer userId, String userRole) {
+    PostEntity post = postRepository.findById(postId)
+        .orElseThrow(() -> new NoSuchElementException("Post not found"));
+
+    String userIdentifier = userId + "_" + userRole.toUpperCase();
+
+    // Check if this is the post owner's reaction on their own report post
+    boolean isOwnerReaction = Boolean.TRUE.equals(post.getIsSubmittedReport()) && 
+                            post.getUserId() != null && 
+                            post.getUserId().equals(userId) && 
+                            "USER".equalsIgnoreCase(userRole);
+
+    if (post.getDislikedBy().contains(userIdentifier)) {
+        // Remove dislike
+        post.getDislikedBy().remove(userIdentifier);
+        post.setDislikes(post.getDislikes() - 1);
+        
+        // Only add points if it's not the owner's reaction on their report post
+        if (Boolean.TRUE.equals(post.getIsSubmittedReport()) && !isOwnerReaction) {
+            handlePointsAddition(post.getUserId(), userRole);
+        }
+    } else {
+        // Remove like if exists
+        if (post.getLikedBy().contains(userIdentifier)) {
+            post.getLikedBy().remove(userIdentifier);
+            post.setLikes(post.getLikes() - 1);
+            if (Boolean.TRUE.equals(post.getIsSubmittedReport()) && !isOwnerReaction) {
                 handlePointsDeduction(post.getUserId(), userRole);
             }
         }
-
-        return postRepository.save(post);
+        
+        // Add dislike
+        post.getDislikedBy().add(userIdentifier);
+        post.setDislikes(post.getDislikes() + 1);
+        
+        // Only deduct points if it's not the owner's reaction on their report post
+        if (Boolean.TRUE.equals(post.getIsSubmittedReport()) && !isOwnerReaction) {
+            handlePointsDeduction(post.getUserId(), userRole);
+        }
     }
+
+    return postRepository.save(post);
+}
 
 
     private void handlePointsAddition(Integer userId, String userRole) {
