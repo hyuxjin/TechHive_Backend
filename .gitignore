@@ -35,6 +35,6 @@ mvnw.cmd
 *.java
 src/main/resources/application.properties
 /src
-target/classes/com/example/admin_backend/Controller/FeedbackController.class
 target/classes/com/example/admin_backend/Service/FeedbackService.class
 target/classes/com/example/admin_backend/Service/UserReportService.class
+*.class
