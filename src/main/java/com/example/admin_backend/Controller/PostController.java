@@ -236,6 +236,20 @@ public ResponseEntity<List<PostEntity>> getVisiblePosts() {
         }
     }
 
+    // Add this method to your PostController class
+@GetMapping("/{postId}")
+public ResponseEntity<PostEntity> getPostById(@PathVariable int postId) {
+    try {
+        PostEntity post = postService.getPostById(postId);
+        return ResponseEntity.ok(post);
+    } catch (NoSuchElementException e) {
+        return ResponseEntity.notFound().build();
+    } catch (Exception e) {
+        System.err.println("Error retrieving post: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+}
+
     // Add comment to a post
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentEntity> addComment(

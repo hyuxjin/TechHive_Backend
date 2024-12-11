@@ -71,17 +71,17 @@ public class PostService {
     }
 
     // Get post by ID
-    public Optional<PostEntity> getPostById(int postId) {
-        try {
-            System.out.println("Fetching post with ID: " + postId);
-            Optional<PostEntity> post = postRepository.findByPostIdAndIsDeletedFalse(postId);
-            System.out.println("Post found: " + post.isPresent());
-            return post;
-        } catch (Exception e) {
-            System.err.println("Error fetching post by ID: " + e.getMessage());
-            throw new RuntimeException("Error fetching post", e);
-        }
+   // In PostService.java
+public PostEntity getPostById(int postId) {
+    try {
+        System.out.println("Fetching post with ID: " + postId);
+        return postRepository.findByPostIdAndIsDeletedFalse(postId)
+            .orElseThrow(() -> new NoSuchElementException("Post not found with id: " + postId));
+    } catch (Exception e) {
+        System.err.println("Error fetching post by ID: " + e.getMessage());
+        throw new RuntimeException("Error fetching post", e);
     }
+}
 
     // Create new post
    @Transactional
@@ -380,30 +380,66 @@ public PostEntity handleDislike(Integer postId, Integer userId, String userRole)
     }
 
     // Comment operations
-    public List<CommentEntity> getCommentsByPostId(int postId) {
-        try {
-            System.out.println("Fetching comments for post ID: " + postId);
-            List<CommentEntity> comments = commentRepository.findByPostIdAndIsDeletedFalse(postId);
-            System.out.println("Found " + comments.size() + " comments");
-            return comments;
-        } catch (Exception e) {
-            System.err.println("Error fetching comments: " + e.getMessage());
-            throw e;
-        }
+   public List<CommentEntity> getCommentsByPostId(int postId) {
+    try {
+        System.out.println("Fetching comments for post ID: " + postId);
+        // Only get non-deleted comments
+        List<CommentEntity> comments = commentRepository.findByPostIdAndIsDeletedFalse(postId);
+        System.out.println("Found " + comments.size() + " active comments");
+        
+        // Sort comments by timestamp, newest first
+        comments.sort((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()));
+        
+        return comments;
+    } catch (Exception e) {
+        System.err.println("Error fetching comments: " + e.getMessage());
+        throw e;
     }
+}
 
-    public CommentEntity addComment(CommentEntity comment, int postId) {
-        try {
-            System.out.println("Adding comment to post ID: " + postId);
-            comment.setPostId(postId);
-            CommentEntity savedComment = commentRepository.save(comment);
-            System.out.println("Comment added successfully");
-            return savedComment;
-        } catch (Exception e) {
-            System.err.println("Error adding comment: " + e.getMessage());
-            throw e;
+   public CommentEntity addComment(CommentEntity comment, int postId) {
+    try {
+        System.out.println("Adding comment to post ID: " + postId);
+        
+        // Set post ID
+        comment.setPostId(postId);
+        
+        // Set timestamp
+        comment.setTimestamp(LocalDateTime.now());
+        
+        // If it's an admin comment, fetch and set admin details
+        if (comment.getAdminId() != null) {
+            AdminEntity admin = adminRepository.findById(comment.getAdminId())
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+            comment.setFullName(admin.getFullName());
+            comment.setIdNumber(admin.getIdNumber());
         }
+        // If it's a superuser comment, fetch and set superuser details
+        else if (comment.getSuperUserId() != null) {
+            SuperUserEntity superUser = superUserRepository.findById(comment.getSuperUserId())
+                .orElseThrow(() -> new RuntimeException("SuperUser not found"));
+            comment.setFullName(superUser.getFullName());
+            comment.setIdNumber(superUser.getIdNumber());
+        }
+        // If it's a user comment, fetch and set user details
+        else if (comment.getUserId() != null) {
+            UserEntity user = userRepository.findById(comment.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            comment.setFullName(user.getFullName());
+            comment.setIdNumber(user.getIdNumber());
+        }
+
+        comment.setDeleted(false);
+        comment.setVisible(true);
+        
+        CommentEntity savedComment = commentRepository.save(comment);
+        System.out.println("Comment added successfully with details: " + savedComment);
+        return savedComment;
+    } catch (Exception e) {
+        System.err.println("Error adding comment: " + e.getMessage());
+        throw e;
     }
+}
 
     // Report post operations
     public List<PostEntity> getAllReportPosts() {

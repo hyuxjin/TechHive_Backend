@@ -42,56 +42,77 @@ public class SuperUserProfileController {
     public ResponseEntity<?> uploadSuperUserProfilePicture(
             @RequestParam("superuserId") int superuserId,
             @RequestParam("file") MultipartFile file) {
-        System.out.println("Received upload request for SuperUser ID: " + superuserId); // Debug log
-    
+        System.out.println("Received upload request for SuperUser ID: " + superuserId);
+
+        // Validate superuserId
+        if (superuserId <= 0) {
+            System.err.println("Invalid superuserId: " + superuserId);
+            return ResponseEntity.badRequest().body("Invalid SuperUser ID.");
+        }
+
         Optional<SuperUserEntity> superUserOptional = superUserRepository.findById(superuserId);
         if (!superUserOptional.isPresent()) {
             return ResponseEntity.badRequest().body("Superuser not found.");
         }
-    
+
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty or not provided.");
         }
+
         try {
             if (file.getSize() > 2 * 1024 * 1024) { // Max size of 2MB
                 return ResponseEntity.badRequest().body("File size exceeds the 2MB limit.");
             }
-    
+
             byte[] profilePicture = file.getBytes();
             SuperUserProfileEntity updatedProfile = superUserProfileService.saveSuperUserProfilePicture(superuserId, profilePicture);
-    
-            // Return the profile ID after saving the picture
+
             return ResponseEntity.ok("Profile picture uploaded successfully. Profile ID: " + updatedProfile.getSuperuserProfileId());
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading file.");
         }
     }
-    
+
     @GetMapping("/getProfilePicture/{superuserId}")
-public ResponseEntity<?> getSuperUserProfilePicture(@PathVariable int superuserId) {
-    System.out.println("Fetching profile picture for SuperUser ID: " + superuserId); // Debug log
+    public ResponseEntity<?> getSuperUserProfilePicture(@PathVariable int superuserId) {
+        System.out.println("Fetching profile picture for SuperUser ID: " + superuserId);
 
-    Optional<SuperUserEntity> superUserOptional = superUserRepository.findById(superuserId); // Corrected method
-    if (!superUserOptional.isPresent()) {
-        return ResponseEntity.badRequest().body("Superuser not found.");
-    }
+        // Validate superuserId
+        if (superuserId <= 0) {
+            System.err.println("Invalid superuserId: " + superuserId);
+            return ResponseEntity.badRequest().body("Invalid SuperUser ID.");
+        }
 
-    SuperUserProfileEntity superUserProfile = superUserProfileRepository.findBySuperuser(superUserOptional.get());
-    if (superUserProfile != null && superUserProfile.getSuperuserProfilePicture() != null) {
-        System.out.println("Profile picture found, returning byte array.");
-        return ResponseEntity.ok(superUserProfile.getSuperuserProfilePicture());
-    } else {
-        System.out.println("No profile picture found, returning default image.");
-        return ResponseEntity.ok(getDefaultProfilePicture()); // Ensure default picture path exists
+        Optional<SuperUserEntity> superUserOptional = superUserRepository.findById(superuserId);
+        if (!superUserOptional.isPresent()) {
+            return ResponseEntity.badRequest().body("Superuser not found.");
+        }
+
+        SuperUserProfileEntity superUserProfile = superUserProfileRepository.findBySuperuser(superUserOptional.get());
+        if (superUserProfile != null && superUserProfile.getSuperuserProfilePicture() != null) {
+            System.out.println("Profile picture found, returning byte array.");
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/jpeg") // Adjust content type based on your image type
+                    .body(superUserProfile.getSuperuserProfilePicture());
+        } else {
+            System.out.println("No profile picture found, returning default image.");
+            byte[] defaultPicture = getDefaultProfilePicture();
+            if (defaultPicture != null) {
+                return ResponseEntity.ok()
+                        .header("Content-Type", "image/png") // Adjust content type for default picture
+                        .body(defaultPicture);
+            } else {
+                System.err.println("Default profile picture is missing.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Default profile picture not available.");
+            }
+        }
     }
-}
 
     private byte[] getDefaultProfilePicture() {
         try {
-            // Ensure this path points to a valid image in your server
-            Path path = Paths.get("public/default.png");
-            System.out.println("Default profile picture path: " + path.toString()); // Log the path for debugging
+            Path path = Paths.get("src/main/resources/static/default.png");
+            System.out.println("Default profile picture path: " + path.toString());
             return Files.readAllBytes(path);
         } catch (IOException e) {
             e.printStackTrace();
