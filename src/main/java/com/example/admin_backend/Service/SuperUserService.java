@@ -33,6 +33,24 @@ public class SuperUserService {
         createDefaultSuperUserIfNotExists();  
     }
 
+    @Autowired
+    private EmailService emailService;
+
+    // Inject the properties from application.properties
+    @Value("${superuser.default.username}")
+    private String defaultUsername;
+
+    @Value("${superuser.default.password}")
+    private String defaultPassword;
+
+    @Value("${superuser.default.email}")
+    private String defaultEmail;
+
+    @Value("${superuser.default.fullName}")
+    private String defaultFullName;
+
+    @Value("${superuser.default.idNumber}")
+    private String defaultIdNumber;
     
     // Hash existing passwords
     @Transactional
@@ -49,6 +67,7 @@ public class SuperUserService {
     private boolean isPasswordHashed(String password) {
         return password != null && password.startsWith("$2a$");
     }
+
     @Transactional
     public void createDefaultSuperUserIfNotExists() {
         if (superUserRepository.count() == 0) {
@@ -67,11 +86,11 @@ public class SuperUserService {
     }
     // Create new SuperUser with hashed password
    @Transactional
-public SuperUserEntity insertSuperUser(SuperUserEntity superuser) {
-    // Encrypt the password before saving
-    superuser.setSuperUserPassword(encoder.encode(superuser.getSuperUserPassword()));
-    return superUserRepository.save(superuser);
-}
+    public SuperUserEntity insertSuperUser(SuperUserEntity superuser) {
+        // Encrypt the password before saving
+        superuser.setSuperUserPassword(encoder.encode(superuser.getSuperUserPassword()));
+        return superUserRepository.save(superuser);
+    }
 
     public List<SuperUserEntity> getAllSuperUsers() {
         return superUserRepository.findAll();
