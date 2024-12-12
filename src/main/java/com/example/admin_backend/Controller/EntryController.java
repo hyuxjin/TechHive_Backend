@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/entries")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app")
 public class EntryController {
 
     @Autowired

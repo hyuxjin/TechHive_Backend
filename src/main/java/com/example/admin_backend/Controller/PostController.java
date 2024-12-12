@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/posts")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app")
 public class PostController {
     @Autowired
     private PostService postService;

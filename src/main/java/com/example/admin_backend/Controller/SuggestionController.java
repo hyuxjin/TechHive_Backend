@@ -6,7 +6,7 @@ import com.example.admin_backend.Service.SuggestionService;
 
 @RestController
 @RequestMapping("/api/suggestions")  // Base path for all suggestion-related APIs
-@CrossOrigin(origins = "http://localhost:3000")  // Allow requests from your frontend origin
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app")  // Allow requests from your frontend origin
 public class SuggestionController {
 
     private final SuggestionService suggestionService;

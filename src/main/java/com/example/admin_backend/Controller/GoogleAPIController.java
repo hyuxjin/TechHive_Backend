@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/api/location")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app")
 public class GoogleAPIController {
 
     // Fetch the API key from the application.properties file

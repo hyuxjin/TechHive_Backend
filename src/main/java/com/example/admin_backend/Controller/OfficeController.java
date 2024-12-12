@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app")
 @RestController
 @RequestMapping("/office")
 public class OfficeController {

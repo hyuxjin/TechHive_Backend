@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/password-reset")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app")
 public class PasswordResetController {
 
     @Autowired

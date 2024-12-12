@@ -19,7 +19,7 @@ import com.example.admin_backend.Repository.AdminRepository;
 import com.example.admin_backend.Service.ProfileService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app")
 @RequestMapping("/api/profile")
 public class ProfileController {
     

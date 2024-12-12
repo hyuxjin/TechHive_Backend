@@ -9,7 +9,7 @@ import com.example.admin_backend.Service.LeaderboardService;
 
 @RestController
 @RequestMapping("/api/leaderboard")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app")
 public class LeaderboardController {
     @Autowired
     private LeaderboardService leaderboardService;

@@ -16,7 +16,7 @@ import com.example.admin_backend.Service.AdminService;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = "https://wildcatonetap.vercel.app", allowCredentials = "true")
 public class AdminController {
 
     private static final String SESSION_USER_KEY = "admin";
