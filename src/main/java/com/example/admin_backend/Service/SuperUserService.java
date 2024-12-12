@@ -30,7 +30,9 @@ public class SuperUserService {
     @PostConstruct
     public void init() {
         hashExistingPasswords();
+        createDefaultSuperUserIfNotExists();  
     }
+
     
     // Hash existing passwords
     @Transactional
@@ -47,7 +49,22 @@ public class SuperUserService {
     private boolean isPasswordHashed(String password) {
         return password != null && password.startsWith("$2a$");
     }
-
+    @Transactional
+    public void createDefaultSuperUserIfNotExists() {
+        if (superUserRepository.count() == 0) {
+            SuperUserEntity defaultSuperUser = new SuperUserEntity();
+            defaultSuperUser.setSuperUsername(defaultUsername);
+            defaultSuperUser.setSuperUserPassword(encoder.encode(defaultPassword));
+            defaultSuperUser.setEmail(defaultEmail);
+            defaultSuperUser.setFullName(defaultFullName);
+            defaultSuperUser.setSuperUserIdNumber(defaultIdNumber);
+            defaultSuperUser.setStatus(true);
+            superUserRepository.save(defaultSuperUser);
+            System.out.println("Default SuperUser created.");
+        } else {
+            System.out.println("SuperUser already exists.");
+        }
+    }
     // Create new SuperUser with hashed password
    @Transactional
 public SuperUserEntity insertSuperUser(SuperUserEntity superuser) {
