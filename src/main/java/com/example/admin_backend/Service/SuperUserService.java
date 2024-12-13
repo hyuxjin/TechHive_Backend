@@ -27,27 +27,10 @@ public class SuperUserService {
     private EmailService emailService;
 
 
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-    @Value("${superuser.default.username}")
-    private String defaultUsername;
-
-    @Value("${superuser.default.password}")
-    private String defaultPassword;
-
-    @Value("${superuser.default.email}")
-    private String defaultEmail;
-
-    @Value("${superuser.default.fullName}")
-    private String defaultFullName;
-
-    @Value("${superuser.default.idNumber}")
-    private String defaultIdNumber;
-
     @PostConstruct
     public void init() {
         hashExistingPasswords();
-        createDefaultSuperUserIfNotExists();  // Create default user if it does not exist
+        createDefaultSuperUserIfNotExists();  
     }
 
     // Hash existing passwords
@@ -71,12 +54,12 @@ public class SuperUserService {
     public void createDefaultSuperUserIfNotExists() {
         if (superUserRepository.count() == 0) {
             SuperUserEntity defaultSuperUser = new SuperUserEntity();
-            defaultSuperUser.setSuperUsername(defaultUsername);
-            defaultSuperUser.setSuperUserPassword(encoder.encode(defaultPassword));
-            defaultSuperUser.setEmail(defaultEmail);
-            defaultSuperUser.setFullName(defaultFullName);
-            defaultSuperUser.setSuperUserIdNumber(defaultIdNumber);
-            defaultSuperUser.setStatus(true);  // Set to true to enable the default user
+            defaultSuperUser.setSuperUsername("richard.molina");  
+            defaultSuperUser.setSuperUserPassword(encoder.encode("password"));  
+            defaultSuperUser.setEmail("richard.molina@cit.edu");  
+            defaultSuperUser.setFullName("Richard Molina");  // Hardcoded full name
+            defaultSuperUser.setSuperUserIdNumber("21-1047-808");  // Hardcoded ID number
+            defaultSuperUser.setStatus(true);
             superUserRepository.save(defaultSuperUser);
             System.out.println("Default SuperUser created.");
         } else {
