@@ -27,10 +27,27 @@ public class SuperUserService {
     private EmailService emailService;
 
 
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    @Value("${superuser.default.username}")
+    private String defaultUsername;
+
+    @Value("${superuser.default.password}")
+    private String defaultPassword;
+
+    @Value("${superuser.default.email}")
+    private String defaultEmail;
+
+    @Value("${superuser.default.fullName}")
+    private String defaultFullName;
+
+    @Value("${superuser.default.idNumber}")
+    private String defaultIdNumber;
+
     @PostConstruct
     public void init() {
         hashExistingPasswords();
-        createDefaultSuperUserIfNotExists();  
+        createDefaultSuperUserIfNotExists();  // Create default user if it does not exist
     }
 
     // Hash existing passwords
@@ -54,19 +71,18 @@ public class SuperUserService {
     public void createDefaultSuperUserIfNotExists() {
         if (superUserRepository.count() == 0) {
             SuperUserEntity defaultSuperUser = new SuperUserEntity();
-            defaultSuperUser.setSuperUsername(superUserConfig.getUsername());
-            defaultSuperUser.setSuperUserPassword(encoder.encode(superUserConfig.getPassword()));
-            defaultSuperUser.setEmail(superUserConfig.getEmail());
-            defaultSuperUser.setFullName(superUserConfig.getFullName());
-            defaultSuperUser.setSuperUserIdNumber(superUserConfig.getIdNumber());
-            defaultSuperUser.setStatus(true);
+            defaultSuperUser.setSuperUsername(defaultUsername);
+            defaultSuperUser.setSuperUserPassword(encoder.encode(defaultPassword));
+            defaultSuperUser.setEmail(defaultEmail);
+            defaultSuperUser.setFullName(defaultFullName);
+            defaultSuperUser.setSuperUserIdNumber(defaultIdNumber);
+            defaultSuperUser.setStatus(true);  // Set to true to enable the default user
             superUserRepository.save(defaultSuperUser);
             System.out.println("Default SuperUser created.");
         } else {
             System.out.println("SuperUser already exists.");
         }
     }
-
     // Create new SuperUser with hashed password
    @Transactional
     public SuperUserEntity insertSuperUser(SuperUserEntity superuser) {
