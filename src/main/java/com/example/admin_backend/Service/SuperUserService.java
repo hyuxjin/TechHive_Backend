@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.admin_backend.Config.SuperUserConfig;
 import com.example.admin_backend.Entity.SuperUserEntity;
 import com.example.admin_backend.Repository.SuperUserRepository;
 
@@ -27,31 +28,15 @@ public class SuperUserService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private SuperUserConfig superUserConfig;  // Inject the SuperUserConfig
+
     @PostConstruct
     public void init() {
         hashExistingPasswords();
         createDefaultSuperUserIfNotExists();  
     }
 
-    @Autowired
-    private EmailService emailService;
-
-    // Inject the properties from application.properties
-    @Value("${superuser.default.username}")
-    private String defaultUsername;
-
-    @Value("${superuser.default.password}")
-    private String defaultPassword;
-
-    @Value("${superuser.default.email}")
-    private String defaultEmail;
-
-    @Value("${superuser.default.fullName}")
-    private String defaultFullName;
-
-    @Value("${superuser.default.idNumber}")
-    private String defaultIdNumber;
-    
     // Hash existing passwords
     @Transactional
     public void hashExistingPasswords() {
@@ -68,15 +53,16 @@ public class SuperUserService {
         return password != null && password.startsWith("$2a$");
     }
 
+    // Create the default super user if it doesn't exist
     @Transactional
     public void createDefaultSuperUserIfNotExists() {
         if (superUserRepository.count() == 0) {
             SuperUserEntity defaultSuperUser = new SuperUserEntity();
-            defaultSuperUser.setSuperUsername(defaultUsername);
-            defaultSuperUser.setSuperUserPassword(encoder.encode(defaultPassword));
-            defaultSuperUser.setEmail(defaultEmail);
-            defaultSuperUser.setFullName(defaultFullName);
-            defaultSuperUser.setSuperUserIdNumber(defaultIdNumber);
+            defaultSuperUser.setSuperUsername(superUserConfig.getUsername());
+            defaultSuperUser.setSuperUserPassword(encoder.encode(superUserConfig.getPassword()));
+            defaultSuperUser.setEmail(superUserConfig.getEmail());
+            defaultSuperUser.setFullName(superUserConfig.getFullName());
+            defaultSuperUser.setSuperUserIdNumber(superUserConfig.getIdNumber());
             defaultSuperUser.setStatus(true);
             superUserRepository.save(defaultSuperUser);
             System.out.println("Default SuperUser created.");
@@ -84,6 +70,7 @@ public class SuperUserService {
             System.out.println("SuperUser already exists.");
         }
     }
+
     // Create new SuperUser with hashed password
    @Transactional
     public SuperUserEntity insertSuperUser(SuperUserEntity superuser) {
@@ -110,31 +97,31 @@ public class SuperUserService {
         return superUserRepository.save(superuser);
     }
 
-// Update method name to match repository
-public SuperUserEntity getSuperUserBySuperUsername(String superUsername) {
-    return superUserRepository.findBySuperUsername(superUsername)
-            .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
-}
-
-// Update method name and parameter to match repository
-public SuperUserEntity getSuperUserBySuperUserIdNumberAndSuperUserPassword(String superUserIdNumber, String password) {
-    Optional<SuperUserEntity> optionalSuperuser = superUserRepository.findBySuperUserIdNumber(superUserIdNumber);
-
-    if (optionalSuperuser.isPresent() && 
-        encoder.matches(password, optionalSuperuser.get().getSuperUserPassword())) {
-        return optionalSuperuser.get();
+    // Get SuperUser by superUsername
+    public SuperUserEntity getSuperUserBySuperUsername(String superUsername) {
+        return superUserRepository.findBySuperUsername(superUsername)
+                .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
     }
-    throw new IllegalArgumentException("Invalid credentials");
-}
 
-// Update method name to match repository
-public SuperUserEntity updateSuperUserStatus(String superUserIdNumber, boolean newStatus) {
-    SuperUserEntity superuser = superUserRepository.findBySuperUserIdNumber(superUserIdNumber)
-            .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
+    // Get SuperUser by superUserIdNumber and password
+    public SuperUserEntity getSuperUserBySuperUserIdNumberAndSuperUserPassword(String superUserIdNumber, String password) {
+        Optional<SuperUserEntity> optionalSuperuser = superUserRepository.findBySuperUserIdNumber(superUserIdNumber);
 
-    superuser.setStatus(newStatus);
-    return superUserRepository.save(superuser);
-}
+        if (optionalSuperuser.isPresent() && 
+            encoder.matches(password, optionalSuperuser.get().getSuperUserPassword())) {
+            return optionalSuperuser.get();
+        }
+        throw new IllegalArgumentException("Invalid credentials");
+    }
+
+    // Update SuperUser status
+    public SuperUserEntity updateSuperUserStatus(String superUserIdNumber, boolean newStatus) {
+        SuperUserEntity superuser = superUserRepository.findBySuperUserIdNumber(superUserIdNumber)
+                .orElseThrow(() -> new NoSuchElementException("SuperUser not found"));
+
+        superuser.setStatus(newStatus);
+        return superUserRepository.save(superuser);
+    }
 
     // Password reset functionality with hashing
     @Transactional
