@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.admin_backend.Config.SuperUserConfig;
 import com.example.admin_backend.Entity.SuperUserEntity;
 import com.example.admin_backend.Repository.SuperUserRepository;
 
@@ -28,8 +27,6 @@ public class SuperUserService {
     @Autowired
     private EmailService emailService;
 
-    @Autowired
-    private SuperUserConfig superUserConfig;  // Inject the SuperUserConfig
 
     @PostConstruct
     public void init() {
